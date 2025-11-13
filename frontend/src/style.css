@@ -1,0 +1,17 @@
+@font-face {
+    font-family: 'RuslanDisplay';
+    src: url('../src/assets/RuslanDisplay.ttf');
+}
+
+html,
+body {
+    height: 100%;
+    background: white;
+    font-family: 'RuslanDisplay', sans-serif;
+    font-weight: lighter;
+    font-size: 22px;
+}
+
+* {
+    box-sizing: border-box;
+}
