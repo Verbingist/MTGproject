@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 use App\Models\Tournament;
 use App\Models\Users_tournament;
 use App\Models\Users_cards;
@@ -16,20 +15,6 @@ class UserController extends Controller
 {
     public function registration(Request $request)
     {
-        try {
-            $request->validate([
-                'firstname' => 'required|alpha|min:4',
-                'secondname' => 'required|alpha|min:4',
-                'email' => 'required|email|unique:users',
-                'login' => 'required|unique:users|min:4',
-                'password' => 'required|min:4',
-                'age' => 'nullable|numeric|between:9,91',
-                'rating' => 'nullable|in:Bronze,Silver,Gold,Mythic'
-            ]);
-        } catch (ValidationException $error) {
-            return response()->json(['message' => 'Введены некорректные данные', 'status' => 400], 400);
-        }
-
         User::insert([
             'first_name' => $request->firstname,
             'last_name' => $request->secondname,
@@ -39,21 +24,11 @@ class UserController extends Controller
             'age' => $request->age,
             'rating' => $request->rating
         ]);
-
         return response()->json(['message' => 'Успешная регистрация', 'status' => 200], 200);
     }
     public function login(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'login' => 'required',
-                'password' => 'required|min:4',
-            ]);
-        } catch (ValidationException $error) {
-            return response()->json(['message' => 'Введены некорректные данные', 'status' => 401], 401);
-        }
-
-        if (Auth::attempt($validated)) {
+        if (Auth::attempt($request->only('login', 'password'))) {
             return response()->json(['message' => 'Успешный вход'], 200);
         }
         return response()->json(['message' => 'Неверные данные'], 401);
@@ -74,20 +49,16 @@ class UserController extends Controller
     }
     public function getUsers()
     {
-        $userLogin = User::select('login')->paginate(8);
+        $userLogin = User::select('login')->orderBy('login')->paginate(8);
         return response()->json(['logins' => $userLogin, 'status' => 200], 200);
     }
-    public function updateUser(Request $request, $id)
+    public function updateUser(Request $request, $id = 0)
     {
-        try {
-            $request->validate([
-                'firstname' => 'alpha|min:4',
-                'secondname' => 'alpha|min:4',
-                'login' => 'unique:users|min:4',
-                'age' => 'nullable|numeric|between:9,91',
-            ]);
-        } catch (ValidationException $error) {
-            return response()->json(['message' => 'Введены некорректные данные', 'status' => 400], 400);
+        if ($request->user()->cannot('update', User::class)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
+        if (!$id) {
+            $id = Auth::id();
         }
         $user = User::where('id', '=', $id)->first();
         if (!$user) {
@@ -104,6 +75,9 @@ class UserController extends Controller
     }
     public function deleteUser($id)
     {
+        if (auth()->user()->cannot('delete', User::class)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
         $userLogin = User::where('id', '=', $id)->delete();
         if (!$userLogin)
             return response()->json(['message' => 'Пользователь не был удален', 'status' => 404], 404);
@@ -114,73 +88,61 @@ class UserController extends Controller
         $tounament = Tournament::where('tournament_id', '=', $tournamentId)->first();
         if (!$tounament)
             return response()->json(['message' => 'Турнир не существует', 'status' => 404], 404);
-        if (Auth::check()) {
-            Users_tournament::insert([
-                'user_id' => Auth::id(),
-                'tournament_id' => $tournamentId
-            ]);
-            return response()->json(['message' => 'Успешная запись на турнир', 'status' => 200], 200);
-        }
-        return response()->json(['message' => 'Вы не аутентифицированы', 'status' => 401], 401);
+        Users_tournament::insert([
+            'user_id' => Auth::id(),
+            'tournament_id' => $tournamentId
+        ]);
+        return response()->json(['message' => 'Успешная запись на турнир', 'status' => 200], 200);
     }
     public function signDownTournament($tournamentId)
     {
         $tounament = Tournament::where('tournament_id', '=', $tournamentId)->first();
         if (!$tounament)
             return response()->json(['message' => 'Турнир не существует', 'status' => 404], 404);
-        if (Auth::check()) {
-            $deleted = Users_tournament::where([
-                'user_id' => Auth::id(),
-                'tournament_id' => $tournamentId
-            ])->delete();
-            if (!$deleted) {
-                return response()->json(['message' => 'Вы не записаны на этот турнир', 'status' => 400], 400);
-            }
-            return response()->json(['message' => 'Запись успешно удалена', 'status' => 200], 200);
+        $deleted = Users_tournament::where([
+            'user_id' => Auth::id(),
+            'tournament_id' => $tournamentId
+        ])->delete();
+        if (!$deleted) {
+            return response()->json(['message' => 'Вы не записаны на этот турнир', 'status' => 400], 400);
         }
-        return response()->json(['message' => 'Вы не аутентифицированы', 'status' => 401], 401);
+        return response()->json(['message' => 'Запись успешно удалена', 'status' => 200], 200);
     }
     public function addCardToCollection(Request $request)
     {
         $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');
         if (!$card_id)
             return response()->json(['message' => 'Карта не существует', 'status' => 404], 404);
-        if (Auth::check()) {
-            $card_in_collection = Users_cards::where([
-                'user_id' => Auth::id(),
-                'card_id' => $card_id
-            ])->first();
-            if ($card_in_collection) {
-                return response()->json(['message' => 'Карта уже существует', 'status' => 404], 404);
-            }
-            Users_cards::insert([
-                'user_id' => Auth::id(),
-                'card_id' => $card_id
-            ]);
-            return response()->json(['message' => 'Карта успешно добавлена', 'status' => 200], 200);
+        $card_in_collection = Users_cards::where([
+            'user_id' => Auth::id(),
+            'card_id' => $card_id
+        ])->first();
+        if ($card_in_collection) {
+            return response()->json(['message' => 'Карта уже существует', 'status' => 404], 404);
         }
-        return response()->json(['message' => 'Вы не аутентифицированы', 'status' => 401], 401);
+        Users_cards::insert([
+            'user_id' => Auth::id(),
+            'card_id' => $card_id
+        ]);
+        return response()->json(['message' => 'Карта успешно добавлена', 'status' => 200], 200);
     }
     public function removeCardFromCollection(Request $request)
     {
         $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');
         if (!$card_id)
             return response()->json(['message' => 'Карта не существует', 'status' => 404], 404);
-        if (Auth::check()) {
-            $card_in_collection = Users_cards::where([
-                'user_id' => Auth::id(),
-                'card_id' => $card_id
-            ])->first();
-            if (!$card_in_collection) {
-                return response()->json(['message' => 'Карты нет в коллекции', 'status' => 404], 404);
-            }
-            Users_cards::where([
-                'user_id' => Auth::id(),
-                'card_id' => $card_id
-            ])->delete();
-            return response()->json(['message' => 'Карта успешно удалена', 'status' => 200], 200);
+        $card_in_collection = Users_cards::where([
+            'user_id' => Auth::id(),
+            'card_id' => $card_id
+        ])->first();
+        if (!$card_in_collection) {
+            return response()->json(['message' => 'Карты нет в коллекции', 'status' => 404], 404);
         }
-        return response()->json(['message' => 'Вы не аутентифицированы', 'status' => 401], 401);
+        Users_cards::where([
+            'user_id' => Auth::id(),
+            'card_id' => $card_id
+        ])->delete();
+        return response()->json(['message' => 'Карта успешно удалена', 'status' => 200], 200);
     }
     public function getCollection($user_id)
     {

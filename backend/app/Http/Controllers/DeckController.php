@@ -3,27 +3,113 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Deck;
+use App\Models\Card;
+use App\Models\Decks_cards;
+use Illuminate\Support\Facades\Auth;
 
 class DeckController extends Controller
 {
-    public function getDeck()
+    public function getDeck($id)
     {
-
+        $deck = Deck::where('deck_id', '=', $id)->first();
+        if (!$deck)
+            return response()->json(['message' => 'Колода не найдена', 'status' => 404], 404);
+        return response()->json(['deck' => $deck, 'status' => 200], 200);
     }
     public function getDecks()
     {
-
+        $decks = Deck::paginate(8);
+        return response()->json(['decks' => $decks, 'status' => 200], 200);
     }
-    public function deleteDecks()
+    public function createDeck(Request $request)
     {
-
+        $deck = $request->only('deck_name', 'format_name', 'power_level');
+        $deck['user_id'] = Auth::id();
+        Deck::insert($deck);
+        return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
     }
-    public function addCardToDeck()
+    public function updateDeck(Request $request, $id)
     {
-
+        $deck = Deck::where('deck_id', '=', $id)->first();
+        if (!$deck) {
+            return response()->json(['message' => "Колоды не существует", 'status' => 404], 404);
+        }
+        if ($request->user()->cannot('update', $deck)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
+        $updated_data = [
+            "deck_name" => $request->deck_name ?? $deck->deck_name,
+            "format_name" => $request->format_name ?? $deck->format_name,
+            "power_level" => $request->power_level ?? $deck->power_level,
+        ];
+        Deck::where('deck_id', '=', $id)->update($updated_data);
+        return response()->json(['message' => "Успешно обновлено", 'status' => 200], 200);
     }
-    public function removeCardFromDeck()
+    public function deleteDecks($id)
     {
+        $deck = Deck::where('deck_id', '=', $id)->first();
+        if (auth()->user()->cannot('delete', $deck)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
+        if (!$deck) {
+            return response()->json(['message' => "Колоды не существует", 'status' => 404], 404);
+        }
+        Deck::where('deck_id', '=', $id)->delete();
+        return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
+    }
+    public function addCardToDeck(Request $request, $id)
+    {
+        $deck = Deck::where('deck_id', '=', $id)->first();
+        if (!$deck) {
+            return response()->json(['message' => "Колоды не существует", 'status' => 404], 404);
+        }
+        if ($request->user()->cannot('addCard', $deck)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
+        $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');
+        if (!$card_id) {
+            return response()->json(['message' => "Карты не существует", 'status' => 404], 404);
+        }
 
+        $cardExistInDeck = Decks_cards::where('deck_id', '=', $id)
+            ->where('card_id', '=', $card_id)->first();
+        if ($cardExistInDeck) {
+            return response()->json(['message' => "Карта уже существует в колоде", 'status' => 400], 400);
+        }
+
+        Decks_cards::insert([
+            'card_id' => $card_id,
+            'deck_id' => $id
+        ]);
+        return response()->json(['message' => 'Успешно добавлено', 'status' => 200], 200);
+    }
+    public function removeCardFromDeck(Request $request, $id)
+    {
+        $deck = Deck::where('deck_id', '=', $id)->first();
+        if (!$deck) {
+            return response()->json(['message' => "Колоды не существует", 'status' => 404], 404);
+        }
+        if ($request->user()->cannot('removeCard', $deck)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
+        $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');
+        if (!$card_id) {
+            return response()->json(['message' => "Карты не существует", 'status' => 404], 404);
+        }
+
+        $cardExistInDeck = Decks_cards::where('deck_id', '=', $id)
+            ->where('card_id', '=', $card_id)->first();
+        if (!$cardExistInDeck) {
+            return response()->json(['message' => "Карты не существует в колоде", 'status' => 400], 400);
+        }
+
+        Decks_cards::where('deck_id', '=', $id)
+            ->where('card_id', '=', $card_id)->delete();
+        return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
+    }
+    public function isOwnDeck()
+    {
+        return response()->json(['message' => 'Колода пользователя', 'status' => 200], 200);
     }
 }
