@@ -1,0 +1,973 @@
+CREATE TABLE USERS (
+    ID SERIAL NOT NULL,
+    FIRST_NAME VARCHAR(255) NOT NULL,
+    LAST_NAME VARCHAR(255) NOT NULL,
+    EMAIL VARCHAR(255) NOT NULL UNIQUE,
+    email_verified_at TIMESTAMP NULL,
+	LOGIN VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    remember_token VARCHAR(100) NULL,
+	AGE INT NULL,
+	RATING VARCHAR(100) NOT NULL, добавить check и default
+	role INT DEFAULT 3,
+	updated_at timestamp null,
+
+	CONSTRAINT PK_USERS PRIMARY KEY(ID)
+);
+
+CREATE TABLE CARDS (
+    CARD_ID SERIAL NOT NULL,
+    CARD_NAME VARCHAR(255) NOT NULL UNIQUE,
+    PRICE FLOAT NULL,
+	TEXT_RULES TEXT NULL,
+	ILLUSTRATION_AUTHOR VARCHAR(255) NOT NULL,
+	FLAVOR_TEXT TEXT NULL,
+	IMAGE_HREF TEXT NULL,
+	POWER INT NULL,
+	THOUGHTNESS INT NULL,
+	updated_at timestamp null,
+    
+	CONSTRAINT PK_CARDS PRIMARY KEY(CARD_ID)
+);
+
+CREATE TABLE TYPES (
+    TYPE_ID SERIAL NOT NULL,
+    TYPE_NAME VARCHAR(255) NOT NULL UNIQUE,
+    
+	CONSTRAINT PK_TYPES PRIMARY KEY(TYPE_ID)
+);
+
+CREATE TABLE CARDS_TYPES (
+    CARD_ID INT NOT NULL,
+    TYPE_ID INT NOT NULL,
+    
+	CONSTRAINT PK_CARDS_TYPES PRIMARY KEY(CARD_ID, TYPE_ID),
+	CONSTRAINT FK_CARDS_TO_TYPES FOREIGN KEY(TYPE_ID)
+		REFERENCES TYPES(TYPE_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_TYPES_TO_CARDS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE SUBTYPES (
+    SUBTYPE_ID SERIAL NOT NULL,
+    SUBTYPE_NAME VARCHAR(255) NOT NULL UNIQUE,
+    
+	CONSTRAINT PK_SUBTYPES PRIMARY KEY(SUBTYPE_ID)
+);
+
+CREATE TABLE CARDS_SUBTYPES (
+    CARD_ID INT NOT NULL,
+    SUBTYPE_ID INT NOT NULL,
+    
+	CONSTRAINT PK_CARDS_SUBTYPES PRIMARY KEY(CARD_ID, SUBTYPE_ID),
+	CONSTRAINT FK_CARDS_TO_SUBTYPES FOREIGN KEY(SUBTYPE_ID)
+		REFERENCES SUBTYPES(SUBTYPE_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_SUBTYPES_TO_CARDS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE SUPERTYPES (
+    SUPERTYPE_ID SERIAL NOT NULL,
+    SUPERTYPE_NAME VARCHAR(255) NOT NULL UNIQUE,
+    
+	CONSTRAINT PK_SUPERTYPES PRIMARY KEY(SUPERTYPE_ID)
+);
+
+CREATE TABLE CARDS_SUPERTYPES (
+    CARD_ID INT NOT NULL,
+    SUPERTYPE_ID INT NOT NULL,
+    
+	CONSTRAINT PK_CARDS_SUPERTYPES PRIMARY KEY(CARD_ID, SUPERTYPE_ID),
+	CONSTRAINT FK_CARDS_TO_SUPERTYPES FOREIGN KEY(SUPERTYPE_ID)
+		REFERENCES SUPERTYPES(SUPERTYPE_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_SUPERTYPES_TO_CARDS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE USERS_CARDS (
+	USER_ID INT NOT NULL,
+    CARD_ID INT NOT NULL,
+    DATE_OF_RECEIPT TIMESTAMP DEFAULT NOW(),
+    
+	CONSTRAINT PK_USERS_CARDS PRIMARY KEY(USER_ID, CARD_ID),
+	CONSTRAINT FK_CARDS_TO_USERS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_USERS_TO_CARDS FOREIGN KEY(USER_ID)
+		REFERENCES USERS(ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE FORMATS (
+	FORMAT_NAME VARCHAR(255) NOT NULL,
+	MIN_CARDS_IN_DECK INT NOT NULL,
+	MAX_CARDS_IN_DECK INT NULL,
+	FORMAT_DESCRIPTION TEXT NOT NULL,
+    
+	CONSTRAINT PK_FORMATS PRIMARY KEY(FORMAT_NAME)
+);
+
+CREATE TABLE TOURNAMENTS (
+	TOURNAMENT_ID SERIAL NOT NULL,
+	TOURNAMENT_NAME VARCHAR(255) NULL,
+	TOURNAMENT_DESCRIPTION TEXT NULL,
+	FORMAT_NAME VARCHAR(255) DEFAULT 'Standard',
+	TOURNAMENT_DATE TIMESTAMP NOT NULL,
+	STATUS VARCHAR(255),
+    
+	CONSTRAINT PK_TOURNAMENT PRIMARY KEY(TOURNAMENT_ID),
+	CONSTRAINT FK_TOURNAMENTS_FORMATS FOREIGN KEY(FORMAT_NAME)
+		REFERENCES FORMATS(FORMAT_NAME) ON UPDATE CASCADE ON DELETE SET DEFAULT
+);
+
+CREATE TABLE TRADING_LOTS (
+	LOT_ID SERIAL NOT NULL,
+	USER_ID INT NOT NULL,
+	LOT_NAME VARCHAR(255) NOT NULL,
+	LOT_DESCRIPTION TEXT NULL,
+	PRICE FLOAT NULL,
+	
+	CONSTRAINT PK_TRADING_LOTS PRIMARY KEY(LOT_ID),
+	CONSTRAINT FK_USERS_LOTS FOREIGN KEY(USER_ID)
+		REFERENCES USERS(ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE USERS_TOURNAMENTS (
+	USER_ID INT NOT NULL,
+    TOURNAMENT_ID INT NOT NULL,
+    DATE_OF_REGISTRATION TIMESTAMP DEFAULT NOW(),
+    
+	CONSTRAINT PK_USERS_TOURNAMENTS PRIMARY KEY(USER_ID, TOURNAMENT_ID),
+	CONSTRAINT FK_TOURNAMENTS_TO_USERS FOREIGN KEY(TOURNAMENT_ID)
+		REFERENCES TOURNAMENTS(TOURNAMENT_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_USERS_TO_TOURNAMENTS FOREIGN KEY(USER_ID)
+		REFERENCES USERS(ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE RESTRICTED_CARDS (
+	CARD_ID INT NOT NULL,
+    FORMAT_NAME VARCHAR(255) NOT NULL,
+	RESTRICTION_TYPE VARCHAR(255) NOT NULL,
+	RESCTRICTION_DESCRIPTION TEXT NULL,
+    DATE_OF_RESTRICTION DATE DEFAULT NOW(),
+    
+	CONSTRAINT PK_RESCTRICTED_CARDS PRIMARY KEY(CARD_ID, FORMAT_NAME),
+	CONSTRAINT FK_CARDS_TO_RESTRICTED_CARDS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_RESTRICTED_CARDS_TO_CARDS FOREIGN KEY(FORMAT_NAME)
+		REFERENCES FORMATS(FORMAT_NAME) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE SETS (
+	SET_ID SERIAL NOT NULL,
+    SET_NAME VARCHAR(255) NOT NULL UNIQUE,
+	NUMBER_OF_CARDS INT NOT NULL,
+    DATE_OF_RELEASE DATE NOT NULL,
+    
+	CONSTRAINT PK_SET PRIMARY KEY(SET_ID)
+);
+
+CREATE TABLE CARDS_SETS (
+    CARD_ID INT NOT NULL,
+	SET_ID INT NOT NULL,
+	
+	CONSTRAINT PK_CARDS_SETS PRIMARY KEY(CARD_ID, SET_ID),
+	CONSTRAINT FK_CARDS_TO_SETS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_SETS_TO_CARDS FOREIGN KEY(SET_ID)
+		REFERENCES SETS(SET_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE KEYWORDS (
+    KEYWORD_ID SERIAL NOT NULL,
+	KEYWORD_NAME VARCHAR(255) NOT NULL,
+	KEYWORD_DESCRIPTION TEXT NULL,
+	
+	CONSTRAINT PK_KEYWORDS PRIMARY KEY(KEYWORD_ID)
+);
+
+CREATE TABLE CARDS_KEYWORDS (
+    CARD_ID INT NOT NULL,
+	KEYWORD_ID INT NOT NULL,
+	
+	CONSTRAINT PK_CARDS_KEYWORDS PRIMARY KEY(CARD_ID, KEYWORD_ID),
+	CONSTRAINT FK_CARDS_TO_KEYWORDS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_KEYWORDS_TO_CARDS FOREIGN KEY(KEYWORD_ID)
+		REFERENCES KEYWORDS(KEYWORD_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE MANA_VALUE (
+    CARD_ID INT NOT NULL,
+	WHITE_MANA INT NULL,
+	BLUE_MANA INT NULL,
+	BLACK_MANA INT NULL,
+	RED_MANA INT NULL,
+	GREEN_MANA INT NULL,
+	COLORLESS_MANA INT NULL,
+	updated_at timestamp null,
+
+
+	CONSTRAINT PK_MANA_VALUE PRIMARY KEY(CARD_ID),
+	CONSTRAINT FK_CARDS_TO_MANA_VALUE FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE DECKS (
+    DECK_ID SERIAL NOT NULL,
+	DECK_NAME VARCHAR(255) NOT NULL UNIQUE,
+	FORMAT_NAME VARCHAR(255) DEFAULT 'Standard',
+	POWER_LEVEL INT NULL,
+	USER_ID INT NULL,
+	updated_at timestamp null,
+
+	CONSTRAINT PK_DECK PRIMARY KEY(DECK_ID),
+	CONSTRAINT FK_DECKS_TO_USERS FOREIGN KEY(USER_ID)
+		REFERENCES USERS(ID) ON UPDATE CASCADE ON DELETE SET NULL
+	CONSTRAINT FK_DECKS_TO_FORMATS FOREIGN KEY(FORMAT_NAME)
+		REFERENCES FORMATS(FORMAT_NAME) ON UPDATE CASCADE ON DELETE SET DEFAULT
+);
+
+CREATE TABLE DECKS_CARDS (
+	DECK_ID INT NOT NULL,
+    CARD_ID INT NOT NULL,
+	DATE_OF_ADDED TIMESTAMP DEFAULT NOW(),
+
+	CONSTRAINT FK_DECKS_TO_CARDS FOREIGN KEY(CARD_ID)
+		REFERENCES CARDS(CARD_ID) ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT FK_CARDS_TO_DECKS FOREIGN KEY(DECK_ID)
+		REFERENCES DECKS(DECK_ID) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+
+
+
+
+INSERT INTO USERS (FIRST_NAME, LAST_NAME, EMAIL, LOGIN, PASSWORD, AGE, RATING) VALUES
+('Иван', 'Петров', 'ivan@mail.ru', 'vanech', 'password', 28, 'Gold'),
+('Анна', 'Иванова', 'anna2@mail.ru', 'anna2', 'password', 25, 'Silver'),
+('Иван', 'Сидоров', 'ivan3@gmail.com', 'ivan3', 'password', NULL, 'Bronze'),
+('Марина', 'Лебедева', 'marina4@gmail.com', 'password', 'pass', 22, 'Gold'),
+('Павел', 'Смирнов', 'pavel5@mail.ru', 'pavel5', 'password', NULL, 'Silver'),
+('Ольга', 'Попова', 'olga6@gmail.com', 'olga6', 'password', 27, 'Bronze'),
+('Сергей', 'Волков', 'sergey7@gmail.com', 'sergey7', 'password', 29, 'Gold'),
+('Елена', 'Федорова', 'elena8@mail.ru', 'elena8', 'password', 31, 'Silver'),
+('Николай', 'Морозов', 'nikolay9@gmail.com', 'nikolay9', 'pass', NULL, 'Bronze'),
+('Ирина', 'Семенова', 'irina10@mail.ru', 'irina10', 'password', 24, 'Gold'),
+('Алексей', 'Егоров', 'alexey11@gmail.com', 'alexey11', 'password', NULL, 'Silver'),
+('Татьяна', 'Павлова', 'tatiana12@mail.ru', 'tatiana12', 'password', 21, 'Bronze'),
+('Дмитрий', 'Лебедев', 'dmitry13@mail.ru', 'dmitry13', 'password', 36, 'Gold'),
+('Светлана', 'Козлова', 'svetlana14@mail.ru', 'svetlana14', 'password', 23, 'Silver'),
+('Максим', 'Николаев', 'maxim15@mail.ru', 'maxim15', 'password', NULL, 'Bronze');
+
+INSERT INTO CARDS (CARD_NAME, PRICE, TEXT_RULES, ILLUSTRATION_AUTHOR, FLAVOR_TEXT, IMAGE_HREF, POWER, THOUGHTNESS) VALUES
+('Lightning bolt', 
+1.06, 
+'Lightning Bolt deals 3 damage to any target.', 
+'Christopher Moeller', 
+'The sparkmage shrieked, calling on the rage of the storms of his youth. To his surprise, the sky responded with a fierce energy he’d never thought to see again.', 
+'https://cards.scryfall.io/large/front/7/7/77c6fa74-5543-42ac-9ead-0e890b188e99.jpg?1706239968', 
+NULL, 
+NULL),
+('Tamiyo, Collector of Tales', 
+1.15, 
+'Spells and abilities your opponents control can’t cause you to discard cards or sacrifice permanents.
++1: Choose a nonland card name, then reveal the top four cards of your library. Put all cards with the chosen name from among them into your hand and the rest into your graveyard.
+−3: Return target card from your graveyard to your hand.', 
+'Chase Stone', 
+NULL, 
+'https://cards.scryfall.io/large/front/7/6/76776b24-a2e1-4590-88e7-8a421baf2fc4.jpg?1557577288',
+NULL,
+NULL),
+('Rings of Brighthearth', 
+6.30,
+'Whenever you activate an ability, if it isn’t a mana ability, you may pay 2. If you do, copy that ability. You may choose new targets for the copy.',
+'Howard Lyon',
+'“Without flame, there would be no iron tools, no cooked meals, no purge of old growth to make room for new.”
+—Brighthearth creed',
+'https://cards.scryfall.io/large/front/8/3/838ffc87-517a-4d94-8ce0-bc9ed01ecc52.jpg?1608911654',
+NULL, 
+NULL),
+('Deathbringer Liege', 
+1.12, 
+'Other white creatures you control get +1/+1.
+Other black creatures you control get +1/+1.
+Whenever you cast a white spell, you may tap target creature.
+Whenever you cast a black spell, you may destroy target creature if it’s tapped.',
+'Drew Tucker', 
+NULL,
+'https://cards.scryfall.io/large/front/f/7/f72d5f2f-7e54-4538-9f0a-eed464a74016.jpg?1673148507',
+3, 
+4),
+('Death-Hood Cobra', 
+0.03, 
+'1G: This creature gains reach until end of turn.
+1G: This creature gains deathtouch until end of turn.',
+'Jason Felix',
+'“Size alone does not guarantee survival.”
+—Vorinclex, Voice of Hunger',
+'https://cards.scryfall.io/large/front/d/e/def88ab5-1b82-46f5-a136-ee1addff4214.jpg?1599707127',
+2, 
+2),
+('Liquimetal Coating', 
+0.22, 
+'Tap: Target permanent becomes an artifact in addition to its other types until end of turn.',
+'Johann Bodin', 
+'“They’ll soon become accustomed to wearing skin that is not their own.”
+—Elesh Norn, Grand Cenobite',
+'https://cards.scryfall.io/large/front/4/3/43ec9201-06e7-4a70-8dcf-7462a019965d.jpg?1562816901',
+NULL, 
+NULL),
+('Nikko-Onna',
+0.17, 
+'When this creature enters, destroy target enchantment.
+Whenever you cast a Spirit or Arcane spell, you may return this creature to its owner’s hand.',
+'Shishizaru', 
+NULL,
+'https://cards.scryfall.io/large/front/b/d/bd7ecd0c-9cfb-4cf3-be62-d949b58b19a4.jpg?1562495623',
+2, 
+2),
+('Chrome Cat', 
+0.07, 
+'When this creature enters, scry 1.',
+'Joe Slucher', 
+'“I always say, ‘If it’s breathing, it’s lying.’ Luckily my friend here does neither.”
+—Lord Xander',
+'https://cards.scryfall.io/large/front/8/5/85da50ba-2061-40f0-b3af-950b87f812cd.jpg?1664414129',
+3, 
+2),
+('Plains', 
+2.45, 
+NULL,
+'Deven Rue', 
+NULL,
+'https://cards.scryfall.io/large/front/4/8/486fbcf9-3a04-47f6-8927-886c2a454499.jpg?1692940093',
+NULL, 
+NULL),
+('Double Down', 
+1.62,
+'Whenever you cast an outlaw spell, copy that spell.',
+'Javier Charro', 
+'The best alibi is being in multiple places at the same time.',
+'https://cards.scryfall.io/large/front/8/e/8ecccdf3-98c6-4aed-8757-913623efb677.jpg?1712355404',
+NULL, 
+NULL),
+('Hamza, Guardian of Arashin', 
+1.87, 
+'This spell costs 1 less to cast for each creature you control with a +1/+1 counter on it.
+Creature spells you cast cost 1 less to cast for each creature you control with a +1/+1 counter on it.
+',
+'Wisnu Tan', 
+'“I stand with every member of my clan, and they stand with me.”',
+'https://cards.scryfall.io/large/front/a/d/adc7f8f3-140d-4dd0-aacc-b81b2b93eb67.jpg?1689999064',
+5, 
+5),
+('Krond the Dawn-Clad', 
+0.96, 
+'Whenever Krond attacks, if it’s enchanted, exile target permanent.',
+'Zoltan Boros', 
+'Krond, the personification of the dawn’s light, lives to exact justice on his nemesis Vela.',
+'https://cards.scryfall.io/large/front/a/7/a73cf77b-3d11-47ea-9779-586ee00bf608.jpg?1562926228',
+6, 
+6),
+('Stratus Dancer', 
+0.22,
+'Megamorph 1U
+When this creature is turned face up, counter target instant or sorcery spell.',
+'Anastasia Ovchinnikova', 
+NULL,
+'https://cards.scryfall.io/large/front/8/2/82fb8b0c-b86e-4915-b72d-9a6b5c1368c7.jpg?1568004073',
+2, 
+1),
+('Serra Angel', 
+0.06, 
+NULL,
+'Donato Giancola', 
+'Follow the light. In its absence, follow her.',
+'https://cards.scryfall.io/large/front/3/c/3cee9303-9d65-45a2-93d4-ef4aba59141b.jpg?1730489152',
+4, 
+4),
+('Swords to Plowshares', 
+4.35,
+'Exile target creature. Its controller gains life equal to its power.',
+'Jeff A. Menges', 
+NULL,
+'https://cards.scryfall.io/large/front/0/5/057d2410-30d3-4b7a-9dc3-f2512c1cf31c.jpg?1559596796',
+NULL, 
+NULL);
+
+INSERT INTO TYPES (TYPE_NAME) VALUES
+('Creature'), 
+('Instant'), 
+('Sorcery'), 
+('Artifact'), 
+('Enchantment'),
+('Land'), 
+('Planeswalker'),
+('Battle'),
+('Dungeon'),
+('Emblem'),
+('Conspiracy'),
+('Hero'),
+('Kindred'),
+('Vanguard');
+
+INSERT INTO CARDS_TYPES (CARD_ID, TYPE_ID) VALUES
+(1,2),
+(2, 7),
+(3, 4),
+(4, 1),
+(5, 1),
+(6, 4),
+(7, 1),
+(8, 1),
+(8, 4),
+(9, 6),
+(10, 5),
+(11, 1),
+(12, 1),
+(13, 1),
+(14, 1),
+(15, 2);
+
+INSERT INTO SUBTYPES (SUBTYPE_NAME) VALUES
+('Horror'),
+('Snake'),
+('Spirit'),
+('Cat'),
+('Plains'),
+('Elephant'),
+('Warrior'),
+('Archon'),
+('Dhinn'),
+('Monk'),
+('Angel'),
+('Elf'),
+('Zombie'),
+('Tamiyo');
+
+INSERT INTO CARDS_SUBTYPES (CARD_ID, SUBTYPE_ID) VALUES
+(2, 14),
+(4, 1),
+(5, 2),
+(7, 3),
+(8, 4),
+(9, 5),
+(11, 6),
+(11, 7),
+(12, 8),
+(13, 9),
+(13, 10),
+(14, 11);
+
+INSERT INTO SUPERTYPES (SUPERTYPE_NAME) VALUES
+('Legendary'), 
+('Basic'),
+('Snow'),
+('Token'),
+('World'),
+('Ongoing'),
+('Elite');
+
+INSERT INTO CARDS_SUPERTYPES (CARD_ID, SUPERTYPE_ID) VALUES
+(2, 1),
+(9, 2),
+(11, 1),
+(12, 1);
+
+INSERT INTO USERS_CARDS (USER_ID, CARD_ID) VALUES
+(1, 1),
+(2, 3),
+(1, 3),
+(1, 5),
+(1, 12),
+(1, 14),
+(3, 3),
+(3, 6),
+(4, 6),
+(4, 7);
+
+INSERT INTO FORMATS (FORMAT_NAME, MIN_CARDS_IN_DECK, MAX_CARDS_IN_DECK, FORMAT_DESCRIPTION) VALUES
+('Standard', 60, NULL, 'Standard format'),
+('Commander', 100, 100, 'Singleton format'),
+('Draft', 40, 40, 'Limited format'),
+('Modern', 60, NULL, 'Modern format'),
+('Legacy', 60, NULL, 'Legacy format'),
+('Vintage', 60, NULL, 'Vintage format'),
+('Pioneer', 60, NULL, 'Pioneer format'),
+('Explorer', 60, NULL, 'Explorer format'),
+('Alchemy', 60, NULL, 'Alchemy format'),
+('Historic', 60, NULL, 'Historic format'),
+('Brawl', 60, NULL, 'Brawl format'),
+('Pauper', 60, NULL, 'Commons only'),
+('Oathbreaker', 60, 60, 'Oathbreaker format');
+
+INSERT INTO TOURNAMENTS (TOURNAMENT_NAME, FORMAT_NAME, TOURNAMENT_DATE) VALUES
+('Summer Slam', 'Commander', '2025-06-15'),
+('Autumn Arena', 'Draft', '2025-09-10'),
+('Winter War', 'Modern', '2025-12-05'),
+('Legacy League', 'Legacy', '2025-11-20'),
+('Vintage Vault', 'Vintage', '2025-10-30'),
+('Pioneer Path', 'Pioneer', '2025-08-18'),
+('Explorer Expedition', 'Explorer', '2025-07-22'),
+('Alchemy Assault', 'Alchemy', '2025-06-01'),
+('Historic Havoc', 'Historic', '2025-05-12'),
+('Brawl Bash', 'Brawl', '2025-04-25'),
+('Standard Showdown', 'Standard', '2025-03-30'),
+('Pauper Parade', 'Pauper', '2025-02-14'),
+('Oathbreaker Open', 'Oathbreaker', '2025-01-20'),
+('Tiny Leaders Trial', DEFAULT, '2025-01-05');
+
+INSERT INTO TRADING_LOTS (USER_ID, LOT_NAME, LOT_DESCRIPTION, PRICE) VALUES
+(1, 'Токены гоблинов', 'Five tokens', 2.5),
+(1, 'Gangrenous Goliath ','Creature — Zombie Giant', 0.5),
+(3, 'Chartooth Cougar', 'Fine condition', 2.0),
+(1, 'Panic Spellbomb', 'Draws a cards', 1.8),
+(1, 'Wind Drake', 'Lightning Bolt trade', NULL),
+(6, '500 комонов', 'Обмен на пачку раров', NULL),
+(3, 'Roots', 'Хорошая чарка', 4),
+(3, 'Пачка классных гор', 'Из фирексийского сета', 6.0),
+(6, '3 кг картона', 'Пять баксов за 3кг картона', 5.0),
+(3, 'Паупер дека феи', 'Играная с протекторами', 50.0);
+
+INSERT INTO USERS_TOURNAMENTS (USER_ID, TOURNAMENT_ID) VALUES
+(1, 1),
+(2, 1),
+(3, 1),
+(4, 1),
+(5, 1),
+(6, 1),
+(1, 2),
+(2, 2),
+(3, 2),
+(4, 2),
+(7, 1);
+
+INSERT INTO RESTRICTED_CARDS (CARD_ID, FORMAT_NAME, RESTRICTION_TYPE, RESCTRICTION_DESCRIPTION) VALUES
+(1, 'Standard', 'Banned', 'Too powerful'),
+(2, 'Vintage', 'Restricted', 'Limited to one'),
+(4, 'Modern', 'Banned', 'Combo enabler'),
+(5, 'Legacy', 'Banned', 'Too fast'),
+(6, 'Vintage', 'Restricted', 'Combo abuse'),
+(7, 'Pioneer', 'Not legal', 'Out of rotation'),
+(9, 'Alchemy', 'Banned', 'Digital-only exploit'),
+(10, 'Historic', 'Restricted', 'Too efficient'),
+(11, 'Brawl','Banned','Commander abuse'),
+(12,'Standard','Restricted','Too dominant'),
+(13,'Pauper','Banned','Too strong for commons'),
+(14,'Oathbreaker','Restricted','Synergy abuse');
+
+INSERT INTO SETS (SET_NAME, NUMBER_OF_CARDS, DATE_OF_RELEASE) VALUES
+('Ravnica: Clue Edition', 284, '2024-02-23'), 
+('War of the spark', 312, '2019-05-03'),
+('Commander legends', 718, '2020-11-20'),
+('Double masters 2022', 579, '2022-07-08'),
+('Double masters', 384, '2020-08-07'),
+('Scars of mirrodin', 249, '2010-10-01'),
+('Saviors of Kamigawa', 165, '2005-06-03'),
+('Streets of New Kapenna', 513, '2022-04-29'),
+('Wilds of Eldraine', 381, '2023-09-08'),
+('Outlaws of Thunder Junction', 374, '2024-04-19'),
+('Planechase 2012', 156, '2012-06-01'),
+('Commander 2019', 302, '2019-08-23'),
+('Foundations', 730, '2024-11-15'),
+('Revised Edition', 306, '1994-04-11');
+
+INSERT INTO CARDS_SETS (CARD_ID, SET_ID) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(7, 7),
+(8, 8),
+(9, 9),
+(10, 10),
+(11, 3),
+(12, 11),
+(13, 12),
+(14, 13),
+(15, 14);
+
+INSERT INTO KEYWORDS (KEYWORD_NAME, KEYWORD_DESCRIPTION) VALUES
+('Flying', 'Can only be blocked by flying or reach'),
+('Trample', 'Excess damage goes to player'),
+('Haste', 'Can attack immediately'),
+('First Strike', 'Deals damage first'),
+('Deathtouch', 'Any damage kills'),
+('Lifelink', 'Gain life equal to damage dealt'),
+('Hexproof', 'Cannot be targeted'),
+('Indestructible', 'Cannot be destroyed'),
+('Vigilance', 'Does not tap to attack'),
+('Reach', 'Can block flying'),
+('Menace', 'Must be blocked by two'),
+('Flash', 'Can be cast any time'),
+('Defender', 'Cannot attack'),
+('Double Strike', 'First and regular strike');
+
+INSERT INTO CARDS_KEYWORDS (CARD_ID, KEYWORD_ID) VALUES
+(12, 1),
+(12, 9),
+(13, 1),
+(14, 1),
+(14, 9);
+
+INSERT INTO MANA_VALUE (CARD_ID, WHITE_MANA, BLUE_MANA, BLACK_MANA, RED_MANA, GREEN_MANA, COLORLESS_MANA) VALUES
+(1,0,0,0,1,0,0),
+(2,0,1,0,0,1,2),
+(3,0,0,0,0,0,3),
+(4,3,0,3,0,0,2),
+(5,0,0,0,0,1,1),
+(6,0,0,0,0,0,2),
+(7,1,0,0,0,0,2),
+(8,0,0,0,0,0,3),
+(9,0,0,0,0,0,0),
+(10,0,1,0,0,0,3),
+(11,1,0,0,0,1,4),
+(12,3,0,0,0,3,0),
+(13,0,1,0,0,0,1),
+(14,2,0,0,0,0,3),
+(15,1,0,0,0,0,0);
+
+INSERT INTO DECKS (DECK_NAME, FORMAT_NAME, POWER_LEVEL) VALUES
+('Commander WUBRG brew', 'Commander', 5),
+('UB Faeries', 'Pauper', NULL),
+('Boros burn', DEFAULT, NULL),
+('tier 0 reanimator', 'Commander', 3),
+('Победитель турнира 2022', 'Pauper', NULL),
+('UB артефакты', 'Modern', NULL),
+('Jodah legends', 'Commander', 4),
+('cEDH muldrotha', 'Commander', 5),
+('Racdos sacrifice', DEFAULT, NULL);
+
+INSERT INTO DECKS_CARDS (DECK_ID, CARD_ID) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8),
+(1, 9),
+(1, 10),
+(2, 11),
+(2, 12),
+(2, 13),
+(2, 14),
+(2, 15),
+(2, 6),
+(2, 7),
+(2, 8),
+(2, 9),
+(2, 10),
+(3, 9),
+(3, 8),
+(3, 7),
+(3, 6),
+(3, 5),
+(3, 4),
+(3, 1),
+(3, 1),
+(3, 1);
+
+
+
+
+CREATE FUNCTION INITIALIZE_MANA_VALUE()
+RETURNS TRIGGER 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO MANA_VALUE (CARD_ID, WHITE_MANA, BLUE_MANA, BLACK_MANA, RED_MANA, GREEN_MANA, COLORLESS_MANA)
+    VALUES (NEW.CARD_ID, 0, 0, 0, 0, 0, 0);
+    RETURN NEW;
+END;
+$$
+
+CREATE TRIGGER TRIGGER_INIT_MANA_VALUE
+AFTER INSERT ON CARDS
+FOR EACH ROW 
+EXECUTE FUNCTION INITIALIZE_MANA_VALUE()
+
+
+
+CREATE FUNCTION INR_SET_COUNT()
+RETURNS TRIGGER 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  UPDATE SETS SET NUMBER_OF_CARDS = NUMBER_OF_CARDS + 1 WHERE SET_ID = NEW.SET_ID;
+  RETURN NEW;
+END;
+$$
+
+CREATE TRIGGER TG_INR_SET_COUNT 
+AFTER INSERT ON CARDS_SETS 
+FOR EACH ROW 
+EXECUTE FUNCTION INR_SET_COUNT();
+
+
+
+CREATE FUNCTION DCR_SET_COUNT()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  NEW_COUNT INT;
+BEGIN
+  SELECT NUMBER_OF_CARDS INTO NEW_COUNT FROM SETS WHERE SET_ID = OLD.SET_ID;
+  IF NEW_COUNT IS NULL THEN
+      NEW_COUNT := 0;
+  ELSE
+      NEW_COUNT := NEW_COUNT - 1;
+  END IF;
+
+  UPDATE SETS SET NUMBER_OF_CARDS = NEW_COUNT
+  WHERE SET_ID = OLD.SET_ID;
+  RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER TG_DCR_SET_COUNT 
+AFTER DELETE ON CARDS_SETS 
+FOR EACH ROW 
+EXECUTE FUNCTION DCR_SET_COUNT();
+
+
+
+CREATE FUNCTION SET_TOURNAMENT_STATUS()
+RETURNS TRIGGER 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF DATE(NEW.TOURNAMENT_DATE) < CURRENT_DATE THEN
+    NEW.STATUS := 'Completed';
+  ELSEIF NEW.STATUS IS NULL THEN
+    NEW.STATUS := 'Scheduled';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER TG_SET_TOURNAMENT_STATUS
+BEFORE INSERT OR UPDATE ON TOURNAMENTS
+FOR EACH ROW 
+EXECUTE FUNCTION SET_TOURNAMENT_STATUS();
+
+
+
+CREATE FUNCTION UPDATE_USER_RATING()
+RETURNS TRIGGER 
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    TOURNAMENT_COUNT INT;
+    NEW_RATING VARCHAR(100);
+BEGIN
+    SELECT COUNT(*) INTO TOURNAMENT_COUNT
+    FROM USERS_TOURNAMENTS
+    WHERE USER_ID = NEW.USER_ID;
+
+    IF TOURNAMENT_COUNT >= 15 THEN
+        NEW_RATING := 'Mythic';
+    ELSIF TOURNAMENT_COUNT >= 10 THEN
+        NEW_RATING := 'Gold';
+    ELSIF TOURNAMENT_COUNT >= 5 THEN
+        NEW_RATING := 'Silver';
+    ELSE
+        NEW_RATING := 'Bronze';
+    END IF;
+
+    UPDATE USERS
+    SET RATING = NEW_RATING
+    WHERE ID = NEW.USER_ID;
+
+    RETURN NULL;
+END;
+$$;
+
+CREATE TRIGGER TG_UPDATE_USER_RATING
+AFTER INSERT ON USERS_TOURNAMENTS
+FOR EACH ROW
+EXECUTE FUNCTION UPDATE_USER_RATING();
+
+
+
+
+CREATE ROLE ADMIN; 
+GRANT ALL ON CARDS, USERS, USERS_DECKS, USERS_CARDS, DECKS, DECKS_CARDS, TYPES,
+CARDS_TYPES, SUBTYPES, CARDS_SUBTYPES, SUPERTYPES, CARDS_SUPERTYPES, MANA_VALUE, 
+CARDS_KEYWORDS, KEYWORDS, SETS, CARDS_SETS, USERS_TOURNAMENTS, TOURNAMENTS,
+FORMATS, RESTRICTED_CARDS, TRADING_LOTS TO ADMIN;
+
+CREATE ROLE ORGANIZER; 
+GRANT ALL ON USERS_TOURNAMENTS, TOURNAMENTS, FORMATS, RESTRICTED_CARDS TO ORGANIZER;
+GRANT INSERT ON CARDS_KEYWORDS TO ORGANIZER;
+GRANT UPDATE ON MANA_VALUE TO ORGANIZER;
+GRANT UPDATE (RATING) ON USERS TO ORGANIZER;
+GRANT UPDATE (KEYWORD_DESCRIPTION) ON KEYWORDS TO ORGANIZER;
+GRANT DELETE ON USERS TO ORGANIZER;
+
+CREATE ROLE DB_USER; 
+GRANT ALL ON DECKS, USERS_CARDS, DECKS_CARDS,
+USERS_DECKS, TRADING_LOTS TO DB_USER;
+
+
+
+
+
+SELECT CARDS.CARD_NAME FROM CARDS 
+JOIN CARDS_TYPES
+ON CARDS.CARD_ID = CARDS_TYPES.CARD_ID
+JOIN TYPES
+ON TYPES.TYPE_ID = CARDS_TYPES.TYPE_ID
+WHERE TYPES.TYPE_NAME IN ('Artifact', 'Creature')
+GROUP BY CARDS.CARD_NAME
+HAVING COUNT(*) = 2
+
+
+SELECT CARDS.CARD_NAME FROM CARDS 
+JOIN CARDS_SUBTYPES
+ON CARDS.CARD_ID = CARDS_SUBTYPES.CARD_ID
+JOIN SUBTYPES
+ON SUBTYPES.SUBTYPE_ID = CARDS_SUBTYPES.SUBTYPE_ID
+WHERE SUBTYPES.SUBTYPE_NAME IN ('Elephant', 'Warrior')
+GROUP BY CARDS.CARD_NAME
+HAVING COUNT(*) = 2
+
+
+SELECT CARDS.CARD_NAME FROM CARDS 
+JOIN CARDS_SUPERTYPES
+ON CARDS.CARD_ID = CARDS_SUPERTYPES.CARD_ID
+JOIN SUPERTYPES
+ON SUPERTYPES.SUPERTYPE_ID = CARDS_SUPERTYPES.SUPERTYPE_ID
+WHERE SUPERTYPES.SUPERTYPE_NAME = 'Legendary'
+
+
+SELECT USERS.FIRST_NAME, USERS.LAST_NAME
+FROM USERS
+JOIN USERS_TOURNAMENTS ON USERS.ID = USERS_TOURNAMENTS.USER_ID
+WHERE USERS_TOURNAMENTS.TOURNAMENT_ID = 1;
+
+
+SELECT CARDS.CARD_NAME FROM CARDS
+JOIN CARDS_SETS
+ON CARDS.CARD_ID = CARDS_SETS.CARD_iD
+JOIN SETS
+ON SETS.SET_ID = CARDS_SETS.SET_ID
+WHERE SETS.SET_NAME = 'Commander legends'
+
+
+SELECT CARDS.CARD_NAME FROM CARDS
+JOIN DECKS_CARDS
+ON CARDS.CARD_ID = DECKS_CARDS.CARD_ID
+JOIN
+USERS_DECKS 
+ON USERS_DECKS.DECK_ID = DECKS_CARDS.DECK_ID
+JOIN USERS
+ON USERS.ID = USERS_DECKS.USER_ID
+WHERE USERS.FIRST_NAME = 'Иван'
+
+
+SELECT * FROM TRADING_LOTS;
+DELETE FROM USERS 
+WHERE USERS.ID = 1
+SELECT * FROM TRADING_LOTS;
+
+
+SELECT DECK_NAME FROM DECKS 
+JOIN USERS_DECKS ON DECKS.DECK_ID = USERS_DECKS.DECK_ID
+WHERE USERS_DECKS.USER_ID = 1;
+
+DELETE FROM USERS WHERE ID = 1;
+
+SELECT DECK_NAME FROM DECKS 
+JOIN USERS_DECKS ON DECKS.DECK_ID = USERS_DECKS.DECK_ID
+WHERE USERS_DECKS.USER_ID = 1;
+
+SELECT * FROM DECKS;
+
+
+
+SELECT CARDS.CARD_NAME, RESTRICTED_CARDS.RESCTRICTION_DESCRIPTION, FORMATS.FORMAT_NAME FROM RESTRICTED_CARDS
+JOIN CARDS ON RESTRICTED_CARDS.CARD_iD = CARDS.CARD_ID
+JOIN FORMATS ON RESTRICTED_CARDS.FORMAT_NAME = FORMATS.FORMAT_NAME;
+
+DELETE FROM FORMATS WHERE FORMAT_NAME = 'Pauper'
+
+SELECT CARDS.CARD_NAME, RESTRICTED_CARDS.RESCTRICTION_DESCRIPTION, FORMATS.FORMAT_NAME FROM RESTRICTED_CARDS
+JOIN CARDS ON RESTRICTED_CARDS.CARD_iD = CARDS.CARD_ID
+JOIN FORMATS ON RESTRICTED_CARDS.FORMAT_NAME = FORMATS.FORMAT_NAME;
+
+SELECT * FROM DECKS;
+
+
+
+BEGIN;
+START TRANSACTION;
+INSERT INTO CARDS (CARD_NAME, PRICE, TEXT_RULES, ILLUSTRATION_AUTHOR, FLAVOR_TEXT, IMAGE_HREF, POWER, THOUGHTNESS) VALUES
+('Aaaa', 2.22, NULL, 'Vincent Van gogh', NULL, NULL, NULL, NULL);
+SELECT * FROM MANA_VALUE 
+JOIN CARDS ON MANA_VALUE.CARD_ID = CARDS.CARD_ID
+WHERE CARDS.CARD_NAME = 'Aaaa'
+
+
+SELECT * FROM SETS WHERE SET_ID = 3;
+INSERT INTO CARDS_SETS (CARD_ID, SET_ID) VALUES (5, 3)
+SELECT * FROM SETS WHERE SET_ID = 3
+
+
+BEGIN;
+INSERT INTO TOURNAMENTS (TOURNAMENT_NAME, FORMAT_NAME, TOURNAMENT_DATE) VALUES
+('Aaaa', 'Commander', '2022-01-01');
+SELECT * FROM TOURNAMENTS WHERE TOURNAMENT_NAME = 'Aaaa'
+
+
+BEGIN;
+SELECT * FROM USERS WHERE ID = 3;
+INSERT INTO USERS_TOURNAMENTS (USER_ID, TOURNAMENT_ID) VALUES
+(3, 3),
+(3, 4),
+(3, 5),
+(3, 6),
+(3, 7),
+(3, 8),
+(3, 9),
+(3, 10),
+(3, 11),
+(3, 12),
+(3, 13);
+SELECT * FROM USERS WHERE ID = 3;
+
+
+
+{
+    "firstname": "Максим", 
+    "secondname": "Николаев", 
+    "email": "maxim15@mail.ru", 
+    "login": "maxim15", 
+    "password": "password", 
+    "age": null, 
+    "rating": "Bronze"
+}
+
+{
+    "login": "1111", 
+    "password": "password"
+}
+
+{
+    "first_name": "abcdef",
+    "last_name": "defghg",
+    "login": "uniquelogin3000"
+}
+
+{
+    "deck_name": "top deck 30",
+    "format_name": "Commander",
+    "power_level": 4
+}
+
+{
+	"Lightning bolt"
+}
