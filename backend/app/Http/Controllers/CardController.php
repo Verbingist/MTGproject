@@ -15,8 +15,6 @@ use App\Models\Subtype;
 use App\Models\Supertype;
 use App\Models\Type;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class CardController extends Controller
 {
