@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tournament;
+use Illuminate\Support\Facades\Auth;
 
 class TournamentController extends Controller
 {
@@ -28,12 +29,12 @@ class TournamentController extends Controller
         Tournament::insert($tournament);
         return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
     }
-    public function updateTournament(Request $request)
+    public function updateTournament(Request $request, $id)
     {
         if ($request->user()->cannot('update', Tournament::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $tournament = Tournament::where('tournament_name', '=', $request->tournament_name)->first();
+        $tournament = Tournament::where('tournament_id', '=', $id)->first();
         if (!$tournament) {
             return response()->json(['message' => "Турнира не существует", 'status' => 404], 404);
         }
@@ -44,19 +45,19 @@ class TournamentController extends Controller
             "tournament_date" => $request->tournament_date ?? $tournament->tournament_date,
             "status" => $request->status ?? $tournament->status,
         ];
-        Tournament::where('tournament_name', '=', $tournament->tournament_name)->update($updated_data);
+        Tournament::where('tournament_id', '=', $id)->update($updated_data);
         return response()->json(['message' => "Успешно обновлено", 'status' => 200], 200);
     }
-    public function deleteTounament(Request $request)
+    public function deleteTounament($id)
     {
-        if ($request->user()->cannot('delete', Tournament::class)) {
+        if (Auth::user()->cannot('delete', Tournament::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $tournament = Tournament::where('tournament_name', '=', $request->tournament_name)->first();
+        $tournament = Tournament::where('tournament_id', '=', $id)->first();
         if (!$tournament) {
             return response()->json(['message' => "Турнира не существует", 'status' => 404], 404);
         }
-        Tournament::where('tournament_name', '=', $request->tournament_name)->delete();
+        Tournament::where('tournament_id', '=', $id)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
 }

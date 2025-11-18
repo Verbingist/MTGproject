@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Subtype;
+use Illuminate\Support\Facades\Auth;
 
 class SubtypeController extends Controller
 {
@@ -28,31 +29,31 @@ class SubtypeController extends Controller
         Subtype::insert($subtype);
         return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
     }
-    public function updateSubtype(Request $request)
+    public function updateSubtype(Request $request, $id)
     {
         if ($request->user()->cannot('update', Subtype::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $subtype = Subtype::where('subtype_name', '=', $request->subtype_name)->first();
+        $subtype = Subtype::where('subtype_id', '=', $id)->first();
         if (!$subtype) {
             return response()->json(['message' => "Подтипа не существует", 'status' => 404], 404);
         }
         $updated_data = [
             "subtype_name" => $request->subtype_name ?? $subtype->subtype_name,
         ];
-        Subtype::where('subtype_name', '=', $subtype->subtype_name)->update($updated_data);
+        Subtype::where('subtype_id', '=', $id)->update($updated_data);
         return response()->json(['message' => "Успешно обновлено", 'status' => 200], 200);
     }
-    public function deleteSubtype(Request $request)
+    public function deleteSubtype($id)
     {
-        if ($request->user()->cannot('delete', Subtype::class)) {
+        if (Auth::user()->cannot('delete', Subtype::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $subtype = Subtype::where('subtype_name', '=', $request->subtype_name)->first();
+        $subtype = Subtype::where('subtype_id', '=', $id)->first();
         if (!$subtype) {
             return response()->json(['message' => "Подтипа не существует", 'status' => 404], 404);
         }
-        Subtype::where('subtype_name', '=', $request->subtype_name)->delete();
+        Subtype::where('subtype_id', '=', $id)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
 }

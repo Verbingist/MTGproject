@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Type;
+use Illuminate\Support\Facades\Auth;
 
 class TypeController extends Controller
 {
@@ -29,12 +30,12 @@ class TypeController extends Controller
         return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
     }
 
-    public function updateType(Request $request)
+    public function updateType(Request $request, $id)
     {
         if ($request->user()->cannot('update', Type::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $type = Type::where('type_name', '=', $request->type_name)->first();
+        $type = Type::where('type_id', '=', $id)->first();
         if (!$type) {
             return response()->json(['message' => "Типа не существует", 'status' => 404], 404);
         }
@@ -44,16 +45,16 @@ class TypeController extends Controller
         Type::where('type_name', '=', $type->type_name)->update($updated_data);
         return response()->json(['message' => "Успешно обновлено", 'status' => 200], 200);
     }
-    public function deleteType(Request $request)
+    public function deleteType($id)
     {
-        if ($request->user()->cannot('delete', Type::class)) {
+        if (Auth::user()->cannot('delete', Type::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $type = Type::where('type_name', '=', $request->type_name)->first();
+        $type = Type::where('type_id', '=', $id)->first();
         if (!$type) {
             return response()->json(['message' => "Типа не существует", 'status' => 404], 404);
         }
-        Type::where('type_name', '=', $request->type_name)->delete();
+        Type::where('type_id', '=', $id)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
 }

@@ -21,11 +21,18 @@ use App\Http\Middleware\DeckCreationValidation;
 use App\Http\Middleware\DeckUpdateValidation;
 use App\Http\Middleware\IsOwnDeck;
 use App\Http\Middleware\CardCreateValidation;
+use App\Http\Middleware\CardUpdateValidation;
 use App\Http\Middleware\TournamentCreationValidation;
 use App\Http\Middleware\TournamentUpdateValidation;
 use App\Http\Middleware\TypeCreateOrUpdateValidation;
 use App\Http\Middleware\SubypeCreateOrUpdateValidation;
 use App\Http\Middleware\SupertypeCreateOrUpdateValidation;
+use App\Http\Middleware\SetCreateValidation;
+use App\Http\Middleware\SetUpdateValidation;
+use App\Http\Middleware\FormatCreateValidation;
+use App\Http\Middleware\FormatUpdateValidation;
+use App\Http\Middleware\RestrictedCardCreateValidation;
+use App\Http\Middleware\RestrictedCardUpdateValidation;
 
 Route::post('/auth/registration', [UserController::class, 'registration'])->middleware(UserValidateRegistration::class);
 Route::post('/auth/login', [UserController::class, 'login'])->middleware(UserValidateLogin::class);
@@ -52,53 +59,52 @@ Route::get('/isOwnDeck/{id}', [DeckController::class, 'isOwnDeck'])->middleware(
 Route::get('/Card/{id}', [CardController::class, 'getCard']);
 Route::get('/Cards', [CardController::class, 'getCards']);
 Route::post('/Card', [CardController::class, 'createCard'])->middleware([Authenification::class, CardCreateValidation::class]);
-Route::put('/Card/{id}', [CardController::class, 'updateCard']);
-Route::delete('/Card', [CardController::class, 'deleteCard']);
+Route::put('/Card/{id}', [CardController::class, 'updateCard'])->middleware([Authenification::class, CardUpdateValidation::class]);
+Route::delete('/Card/{id}', [CardController::class, 'deleteCard'])->middleware(Authenification::class);
 Route::get('/RestrictedCards', [CardController::class, 'getRestrictedCards']);
-Route::post('/RestrictedCard', [CardController::class, 'createRestrictedCard']);
-Route::put('/RestrictedCard', [CardController::class, 'updateRestrictedCard']);
-Route::delete('/RestrictedCard', [CardController::class, 'deleteRestrictedCard']);
+Route::post('/RestrictedCard', [CardController::class, 'createRestrictedCard'])->middleware([Authenification::class, RestrictedCardCreateValidation::class]);
+Route::put('/RestrictedCard', [CardController::class, 'updateRestrictedCard'])->middleware([Authenification::class, RestrictedCardUpdateValidation::class]);
+Route::delete('/RestrictedCard', [CardController::class, 'deleteRestrictedCard'])->middleware(Authenification::class);
 
 Route::get('/Tournament/{id}', [TournamentController::class, 'getTournament']);
 Route::get('/Tournaments', [TournamentController::class, 'getTournaments']);
 Route::post('/Tournament', [TournamentController::class, 'createTournament'])->middleware([Authenification::class, TournamentCreationValidation::class]);
-Route::put('/Tournament', [TournamentController::class, 'updateTournament'])->middleware([Authenification::class, TournamentUpdateValidation::class]);
-Route::delete('/Tournament', [TournamentController::class, 'deleteTournament'])->middleware(Authenification::class);
+Route::put('/Tournament/{id}', [TournamentController::class, 'updateTournament'])->middleware([Authenification::class, TournamentUpdateValidation::class]);
+Route::delete('/Tournament/{id}', [TournamentController::class, 'deleteTournament'])->middleware(Authenification::class);
 
-Route::get('/Lot', [TradingLotController::class, 'getLot']);
+Route::get('/Lot/{id}', [TradingLotController::class, 'getLot']);
 Route::get('/Lots', [TradingLotController::class, 'getLots']);
-Route::post('/Lot', [TradingLotController::class, 'createLot']);
-Route::put('/Lot', [TradingLotController::class, 'updateLot']);
-Route::delete('/Lot', [TradingLotController::class, 'deleteLot']);
+Route::post('/Lot', [TradingLotController::class, 'createLot'])->middleware(Authenification::class);
+Route::put('/Lot/{id}', [TradingLotController::class, 'updateLot'])->middleware(Authenification::class);
+Route::delete('/Lot/{id}', [TradingLotController::class, 'deleteLot'])->middleware(Authenification::class);
 
-Route::get('/Format', [FormatController::class, 'getFormat']);
 Route::get('/Formats', [FormatController::class, 'getFormats']);
-Route::post('/Format', [FormatController::class, 'createFormat']);
-Route::put('/Format', [FormatController::class, 'updateFormat']);
-Route::delete('/Format', [FormatController::class, 'deleteFormat']);
+Route::post('/Format', [FormatController::class, 'createFormat'])->middleware([Authenification::class, FormatCreateValidation::class]);
+Route::put('/Format', [FormatController::class, 'updateFormat'])->middleware([Authenification::class, FormatUpdateValidation::class]);
+Route::delete('/Format', [FormatController::class, 'deleteFormat'])->middleware(Authenification::class);
 
 Route::get('/Type/{id}', [TypeController::class, 'getType']);
 Route::get('/Types', [TypeController::class, 'getTypes']);
 Route::post('/Type', [TypeController::class, 'createType'])->middleware([Authenification::class, TypeCreateOrUpdateValidation::class]);
-Route::put('/Type', [TypeController::class, 'updateType'])->middleware([Authenification::class, TypeCreateOrUpdateValidation::class]);
-Route::delete('/Type', [TypeController::class, 'deleteType'])->middleware(Authenification::class);
+Route::put('/Type/{id}', [TypeController::class, 'updateType'])->middleware([Authenification::class, TypeCreateOrUpdateValidation::class]);
+Route::delete('/Type/{id}', [TypeController::class, 'deleteType'])->middleware(Authenification::class);
 
 Route::get('/Supertype/{id}', [SupertypeController::class, 'getSupertype']);
 Route::get('/Supertypes', [SupertypeController::class, 'getSupertypes']);
 Route::post('/Supertype', [SupertypeController::class, 'createSupertype'])->middleware([Authenification::class, SupertypeCreateOrUpdateValidation::class]);
-Route::put('/Supertype', [SupertypeController::class, 'updateSupertype'])->middleware([Authenification::class, SupertypeCreateOrUpdateValidation::class]);
-Route::delete('/Supertype', [SupertypeController::class, 'deleteSupertype'])->middleware(Authenification::class);
+Route::put('/Supertype/{id}', [SupertypeController::class, 'updateSupertype'])->middleware([Authenification::class, SupertypeCreateOrUpdateValidation::class]);
+Route::delete('/Supertype/{id}', [SupertypeController::class, 'deleteSupertype'])->middleware(Authenification::class);
 
 Route::get('/Subtype/{id}', [SubtypeController::class, 'getSubtype']);
 Route::get('/Subtypes', [SubtypeController::class, 'getSubtypes']);
 Route::post('/Subtype', [SubtypeController::class, 'createSubtype'])->middleware([Authenification::class, SubypeCreateOrUpdateValidation::class]);
-Route::put('/Subtype', [SubtypeController::class, 'updateSubtype'])->middleware([Authenification::class, SubypeCreateOrUpdateValidation::class]);
-Route::delete('/Subtype', [SubtypeController::class, 'deleteSubtype'])->middleware([Authenification::class]);
+Route::put('/Subtype/{id}', [SubtypeController::class, 'updateSubtype'])->middleware([Authenification::class, SubypeCreateOrUpdateValidation::class]);
+Route::delete('/Subtype/{id}', [SubtypeController::class, 'deleteSubtype'])->middleware(Authenification::class);
 
 Route::get('/Set/{id}', [SetController::class, 'getSet']);
 Route::get('/Sets', [SetController::class, 'getSets']);
-Route::post('/Set', [SetController::class, 'createSet']);
-Route::put('/Set', [SetController::class, 'updateSet']);
-Route::delete('/Set', [SetController::class, 'deleteSet']);
-Route::post('/addCardToSet', [SetController::class, 'addCardToSet']);
-Route::delete('/removeCardToSet', [SetController::class, 'removeCardToSet']);
+Route::post('/Set', [SetController::class, 'createSet'])->middleware([Authenification::class, SetCreateValidation::class]);
+Route::put('/Set/{id}', [SetController::class, 'updateSet'])->middleware([Authenification::class, SetUpdateValidation::class]);
+Route::delete('/Set/{id}', [SetController::class, 'deleteSet'])->middleware(Authenification::class);
+Route::post('/addCardToSet', [SetController::class, 'addCardToSet'])->middleware(Authenification::class);
+Route::delete('/removeCardToSet', [SetController::class, 'removeCardToSet'])->middleware(Authenification::class);
