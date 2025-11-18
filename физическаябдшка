@@ -971,3 +971,24 @@ SELECT * FROM USERS WHERE ID = 3;
 {
 	"Lightning bolt"
 }
+
+{
+  "card_name": "Flamewing Drake",
+  "price": "3.50",
+  "text_rules": "When Flamewing Drake enters the battlefield, it deals 2 damage to any target.",
+  "illustration_author": "Ivanov",
+  "flavor_text": "A spark born from the last sunset.",
+  "image_href": "https://cards.scryfall.io/large/front/7/6/7618227f-fbce-4270-a70a-c5313ad80d53.jpg?1562612993",
+  "power": 3,
+  "thoughtness": 2,
+  "keywords": ["Flying", "Trample"],
+  "types": ["Creature"],
+  "subtypes": ["Elf"],
+  "supertypes": ["Legendary"],
+  "white_mana": 0,
+  "blue_mana": 1,
+  "red_mana": 2,
+  "green_mana": 0,
+  "colorless_mana": 1,
+  "set_name": "Foundations"
+}

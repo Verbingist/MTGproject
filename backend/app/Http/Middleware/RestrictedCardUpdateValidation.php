@@ -7,15 +7,15 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Validation\ValidationException;
 
-class DeckCreationValidation
+class RestrictedCardUpdateValidation
 {
     public function handle(Request $request, Closure $next): Response
     {
-         try {
+        try {
             $request->validate([
-                'deck_name' => 'required|min:4|unique:decks,deck_name',
-                'format_name' => 'exists:formats,format_name',
-                'power_level' => 'nullable|numeric',
+                'restriction_type' => 'nullable|in:Banned,Restricted,Not legal',
+                'restriction_description' => 'nullable',
+                'date_of_restriction' => 'nullable|date|before:tomorrow'
             ]);
         } catch (ValidationException $error) {
             return response()->json(['message' => 'Введены некорректные данные', 'status' => 400], 400);

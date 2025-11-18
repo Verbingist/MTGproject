@@ -2,11 +2,9 @@
 
 namespace App\Policies;
 
-use App\Models\Card;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
-class CardPolicy
+class SetPolicy
 {
     public function create(User $user): bool
     {
@@ -26,19 +24,13 @@ class CardPolicy
             return true;
         return false;
     }
-    public function createRestrictedCard(User $user)
+    public function addCard(User $user)
     {
         if ($user->role == 1 || $user->role == 2)
             return true;
         return false;
     }
-    public function updateRestrictedCard(User $user)
-    {
-        if ($user->role == 1 || $user->role == 2)
-            return true;
-        return false;
-    }
-    public function deleteRestrictedCard(User $user)
+    public function removeCard(User $user)
     {
         if ($user->role == 1 || $user->role == 2)
             return true;

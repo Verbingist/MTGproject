@@ -7,15 +7,15 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Validation\ValidationException;
 
-class DeckCreationValidation
+class SetCreateValidation
 {
     public function handle(Request $request, Closure $next): Response
     {
-         try {
+        try {
             $request->validate([
-                'deck_name' => 'required|min:4|unique:decks,deck_name',
-                'format_name' => 'exists:formats,format_name',
-                'power_level' => 'nullable|numeric',
+                'set_name' => 'required|unique:sets,set_name', 
+                'number_of_cards' => 'required|min:0', 
+                'date_of_release' => 'required|date|before:tomorrow',
             ]);
         } catch (ValidationException $error) {
             return response()->json(['message' => 'Введены некорректные данные', 'status' => 400], 400);
