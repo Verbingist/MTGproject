@@ -13,8 +13,9 @@ class FormatCreateValidation
     {
         try {
             $request->validate([
-                'min_cards_in_deck' => 'require|min:40', 
-                'max_cards_in_deck' => 'nullable|min:0', 
+                'format_name' => 'required|unique:formats,format_name',
+                'min_cards_in_deck' => 'required|numeric|min:40', 
+                'max_cards_in_deck' => 'nullable|numeric|min:0', 
                 'format_description' => 'required'
             ]);
         } catch (ValidationException $error) {

@@ -17,9 +17,14 @@ class DeckController extends Controller
             return response()->json(['message' => 'Колода не найдена', 'status' => 404], 404);
         return response()->json(['deck' => $deck, 'status' => 200], 200);
     }
-    public function getDecks()
+    public function getDecks(Request $request)
     {
-        $decks = Deck::paginate(8);
+        $search = $request->query('search');
+        if ($search) {
+            $decks = Deck::where('deck_name', 'like', '%' . $search . '%')->orderBy('deck_name')->paginate(8);
+            return response()->json(['decks' => $decks, 'status' => 200], 200);
+        }
+        $decks = Deck::orderBy('deck_name')->paginate(8);
         return response()->json(['decks' => $decks, 'status' => 200], 200);
     }
     public function createDeck(Request $request)
@@ -107,6 +112,16 @@ class DeckController extends Controller
         Decks_cards::where('deck_id', '=', $id)
             ->where('card_id', '=', $card_id)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
+    }
+    public function getAllCardsFromDeck($id)
+    {
+        $returnedCards = [];
+        $cards = Decks_cards::where('deck_id', '=', $id)->get();
+        foreach ($cards as $card) {
+            $card_name = Card::where('card_id', '=', $card->card_id)->value('card_name');
+            $returnedCards[] = $card_name;
+        }
+        return response()->json(['cards' => $returnedCards], 200);
     }
     public function isOwnDeck()
     {

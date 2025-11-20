@@ -15,9 +15,14 @@ class TradingLotController extends Controller
             return response()->json(['message' => 'Лот не найден', 'status' => 404], 404);
         return response()->json(['lot' => $lot, 'status' => 200], 200);
     }
-    public function getLots()
+    public function getLots(Request $request)
     {
-        $lots = Trading_lot::paginate(8);
+        $search = $request->query('search');
+        if ($search) {
+            $lots = Trading_lot::where('lot_name', 'like', '%' . $search . '%')->orderBy('lot_name')->paginate(8);
+            return response()->json(['lots' => $lots, 'status' => 200], 200);
+        }
+        $lots = Trading_lot::orderBy('lot_name')->paginate(8);
         return response()->json(['lots' => $lots, 'status' => 200], 200);
     }
     public function createLot(Request $request)

@@ -47,12 +47,17 @@ class UserController extends Controller
             return response()->json(['message' => 'Пользователь не найден', 'status' => 404], 404);
         return response()->json(['login' => $userLogin, 'status' => 200], 200);
     }
-    public function getUsers()
+    public function getUsers(Request $request)
     {
+        $search = $request->query('search');
+        if ($search) {
+            $userLogin = User::where('login', 'like', '%' . $search . '%')->orderBy('login')->paginate(8);
+            return response()->json(['logins' => $userLogin, 'status' => 200], 200);
+        }
         $userLogin = User::select('login')->orderBy('login')->paginate(8);
         return response()->json(['logins' => $userLogin, 'status' => 200], 200);
     }
-    public function updateUser(Request $request, $id = 0)
+    public function updateUser(Request $request, $id = null)
     {
         if ($request->user()->cannot('update', User::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
@@ -81,7 +86,7 @@ class UserController extends Controller
         $userLogin = User::where('id', '=', $id)->delete();
         if (!$userLogin)
             return response()->json(['message' => 'Пользователь не был удален', 'status' => 404], 404);
-        return response()->json(['login' => $userLogin, 'status' => 200], 200);
+        return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
     public function signUpTournament($tournamentId)
     {

@@ -26,12 +26,50 @@ class CardController extends Controller
         $card = Card::where('card_id', '=', $id)->first();
         if (!$card)
             return response()->json(['message' => 'Карта не найдена', 'status' => 404], 404);
-        return response()->json(['card' => $card, 'status' => 200], 200);
+        $mana_value = $card->mana_value;
+        $types = $card->types;
+        $subtypes = $card->subtypes;
+        $supertypes = $card->supertypes;
+        $keywords = $card->keywords;
+        return response()->json(
+            [
+                'card' => $card,
+                'mana_value' => $mana_value,
+                'types' => $types,
+                'subtypes' => $subtypes,
+                'supertypes' => $supertypes,
+                'keywords' => $keywords,
+                'status' => 200
+            ],
+            200
+        );
     }
-    public function getCards()
+    public function getCards(Request $request)
     {
-        $cards = Card::orderBy('card_name')->paginate(8);
-        return response()->json(['cards' => $cards, 'status' => 200], 200);
+        $search = $request->query('search');
+        if ($search) {
+            $cards = Card::where('card_name', 'like', '%' . $search . '%')->orderBy('card_name')->paginate(8);
+        } else {
+            $cards = Card::orderBy('card_name')->paginate(8);
+        }
+        $returnCards = [];
+        foreach ($cards as $card) {
+            $mana_value = $card->mana_value;
+            $types = $card->types;
+            $subtypes = $card->subtypes;
+            $supertypes = $card->supertypes;
+            $keywords = $card->keywords;
+            $returnCard = [
+                'card' => $card,
+                'mana_value' => $mana_value,
+                'types' => $types,
+                'subtypes' => $subtypes,
+                'supertypes' => $supertypes,
+                'keywords' => $keywords
+            ];
+            $returnCards[] = $returnCard;
+        }
+        return response()->json(['cards' => $returnCards, 'status' => 200], 200);
     }
     public function createCard(Request $request)
     {
@@ -83,7 +121,7 @@ class CardController extends Controller
                 'flavor_text' => $request->flavor_text ?? $card->flavor_text,
                 'image_href' => $request->image_href ?? $card->image_href,
                 'power' => $request->power ?? $card->power,
-                'thoughtness' => $request->thoughtness ?? $card->thoughtness
+                'thoughtness' => $request->thoughtness ?? $card->thoughtness,
             ];
             Card::where('card_id', '=', $id)->update($updated_data_card);
 
@@ -122,11 +160,14 @@ class CardController extends Controller
             if (!in_array(null, $request->only('white_mana', 'blue_mana', 'black_mana', 'red_mana', 'green_mana', 'colorless_mana'), true)) {
                 $mana_value = $request->only('white_mana', 'blue_mana', 'black_mana', 'red_mana', 'green_mana', 'colorless_mana');
                 Mana_value::where('card_id', '=', $id)->update($mana_value);
+            }
+            if ($request->set_name) {
+                Cards_sets::where('card_id', '=', $id)->delete();
                 $set_id = Set::where('set_name', '=', $request->set_name)->value("set_id");
                 Cards_sets::insert(['card_id' => $id, 'set_id' => $set_id]);
             }
         }, 3);
-        return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
+        return response()->json(['message' => "Успешно обновлено", 'status' => 200], 200);
     }
     public function deleteCard($id)
     {
@@ -182,7 +223,7 @@ class CardController extends Controller
         if (!$card) {
             return response()->json(['message' => "Ограничения не существует", 'status' => 404], 404);
         }
-      Restricted_card::where('card_id', '=', $id)->where('format_name', '=', $request->format_name)->delete();
+        Restricted_card::where('card_id', '=', $id)->where('format_name', '=', $request->format_name)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
 }
