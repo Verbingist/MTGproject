@@ -1,4 +1,5 @@
 <script setup>
+import axios from 'axios';
 import headerComponent from '../components/headerComponent.vue';
 import { reactive, ref } from 'vue';
 
@@ -71,7 +72,12 @@ function closeWindow() {
 }
 
 function reloadPage() {
-    window.location.reload();
+    axios.post('http://localhost:8000/auth/login', {
+        "login":registrationForm.login,
+        "password": registrationForm.password
+    })
+    .then(result => console.log(result))
+    .catch(error => console.log(error))
 }
 </script>
 

@@ -31,7 +31,8 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function getCards() {
+    public function getCards()
+    {
         return $this->belongsToMany(Card::class, Users_cards::class, 'user_id', 'card_id');
     }
 
