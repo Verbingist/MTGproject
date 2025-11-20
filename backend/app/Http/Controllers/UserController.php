@@ -149,8 +149,15 @@ class UserController extends Controller
         ])->delete();
         return response()->json(['message' => 'Карта успешно удалена', 'status' => 200], 200);
     }
-    public function getCollection($user_id)
+    public function getCollection($user_id = null)
     {
+        if (!$user_id) {
+            if (Auth::check()) {
+                $user_id = Auth::id();
+            } else {
+                return response()->json(['message' => 'Не авторизованы', 'status' => 401], 401);
+            }
+        }
         $user = User::where([
             'id' => $user_id,
         ])->first();

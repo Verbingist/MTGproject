@@ -39,7 +39,7 @@ use App\Http\Middleware\LotUpdationValidation;
 Route::post('/auth/registration', [UserController::class, 'registration'])->middleware(UserValidateRegistration::class);
 Route::post('/auth/login', [UserController::class, 'login'])->middleware(UserValidateLogin::class);
 Route::get('/auth/logout', [UserController::class, 'logout']);
-Route::get('/Collection/{user_id}', [UserController::class, 'getCollection']);
+Route::get('/Collection/{user_id?}', [UserController::class, 'getCollection']);
 Route::post('/signUpTournament/{tournamentId}', [UserController::class, 'signUpTournament'])->middleware(Authenification::class);
 Route::delete('/signDownTournament/{tournamentId}', [UserController::class, 'signDownTournament'])->middleware(Authenification::class);
 Route::post('/addCardToCollection', [UserController::class, 'addCardToCollection'])->middleware(Authenification::class);

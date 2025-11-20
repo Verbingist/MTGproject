@@ -1,34 +1,48 @@
 <script setup>
 import headerComponent from "../components/headerComponent.vue";
-import { reactive } from 'vue';
+import { reactive, ref, computed, watch, onMounted } from 'vue';
+import axios from "axios";
+import { useRoute } from 'vue-router'
 
-let posts = [
-    {
-        id: 1,
-        name: "Введение в Vue 3",
-        description: "Краткое руководство по Composition API, реактивности и рендер-функциям.",
-    },
-    {
-        id: 2,
-        name: "Оптимизация запросов к базе",
-        description: "Как уменьшить количество запросов и правильно кешировать результаты.",
-    },
-    {
-        id: 3,
-        name: "Черновик: идеи для API",
-        description: "Наброски по версии API, формату ошибок и пагинации.",
-    },
-    {
-        id: 4,
-        name: "Большой пост с HTML в теле",
-        description: "<p>Пример поста с <strong>HTML</strong> внутри. Используйте sanitizer перед render.</p>",
-    },
-    {
-        id: 5,
-        name: "Короткий",
-        description: "Одно предложение.",
+let route = useRoute()
+
+let firstPage = true;
+let lastPage = true;
+let page = computed(() => Number(route.query.page) || 1)
+let tournaments = ref([]);
+
+function loadTournaments() {
+    axios.get(`http://localhost:8000/Tournaments?page=${page.value}`)
+        .then(result => {
+            tournaments.value = result.data.tournaments.data
+            checkPages();
+        })
+        .catch(error => console.log(error));
+}
+
+function checkPages() {
+    if (tournaments.value.length < 8) {
+        lastPage = false;
     }
-]
+    else {
+        lastPage = true;
+    }
+    if (page.value == 1) {
+        firstPage = false;
+    }
+    else {
+        firstPage = true;
+    }
+}
+
+onMounted(() => {
+    loadTournaments(page.value)
+})
+
+watch(page, (newPage) => {
+    loadTournaments(newPage)
+})
+
 
 </script>
 
@@ -38,9 +52,20 @@ let posts = [
     </header>
     <main class="wrapper">
         <h2>Турниры</h2>
-        <div v-for="post in posts" :key="post.id" class="post">
-            <h3>{{ post.name }}</h3>
-            <p>{{ post.description }}</p>
+        <div v-for="tournament in tournaments" :key="tournament.tournament_id" class="tournament">
+            <h3 class="name">Название: {{ tournament.tournament_name }}</h3>
+            <p>Формат: {{ tournament.format_name }}</p>
+            <p>Статус: {{ tournament.status }}</p>
+            <p>Дата: {{ tournament.tournament_date }}</p>
+            <p>Описание: {{ tournament.tournament_description ? tournament.tournament_description : "Нет" }}</p>
+            <button>Записаться</button>
+        </div>
+        <div class="pagination">
+            <RouterLink v-show="firstPage" class="pagination-button"
+                :to="{ path: $route.path, query: { page: page - 1 } }">← Предыдущая</RouterLink>
+            <span>Страница: {{ page }}</span>
+            <RouterLink v-show="lastPage" class="pagination-button"
+                :to="{ path: $route.path, query: { page: page + 1 } }">Следующая →</RouterLink>
         </div>
     </main>
 </template>
@@ -53,12 +78,30 @@ let posts = [
     justify-content: center;
 }
 
-.post {
+.tournament {
     width: 70%;
-    height: 200px;
     border: 3px solid black;
     border-radius: 20px;
     padding: 20px;
     margin: 20px;
+}
+
+.pagination {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 50px;
+}
+
+.pagination-button {
+    text-decoration: none;
+    color: #C93814;
+    margin: 20px 20px;
+}
+
+.name {
+    color: #C93814;
 }
 </style>
