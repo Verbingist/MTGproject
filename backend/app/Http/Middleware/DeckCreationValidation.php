@@ -15,7 +15,7 @@ class DeckCreationValidation
             $request->validate([
                 'deck_name' => 'required|min:4|unique:decks,deck_name',
                 'format_name' => 'exists:formats,format_name',
-                'power_level' => 'nullable|numeric',
+                'power_level' => 'nullable|numeric|min:0|max:5',
             ]);
         } catch (ValidationException $error) {
             return response()->json(['message' => 'Введены некорректные данные', 'status' => 400], 400);

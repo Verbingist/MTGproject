@@ -973,8 +973,8 @@ SELECT * FROM USERS WHERE ID = 3;
 }
 
 {
-  "card_name": "Flamewing Drake",
-  "price": "3.50",
+  "card_name": "Flame1321",
+  "price": 3.50,
   "text_rules": "When Flamewing Drake enters the battlefield, it deals 2 damage to any target.",
   "illustration_author": "Ivanov",
   "flavor_text": "A spark born from the last sunset.",
@@ -982,7 +982,7 @@ SELECT * FROM USERS WHERE ID = 3;
   "power": 3,
   "thoughtness": 2,
   "keywords": ["Flying", "Trample"],
-  "types": ["Creature"],
+  "types": ["Artifact"],
   "subtypes": ["Elf"],
   "supertypes": ["Legendary"],
   "white_mana": 0,
@@ -991,4 +991,25 @@ SELECT * FROM USERS WHERE ID = 3;
   "green_mana": 0,
   "colorless_mana": 1,
   "set_name": "Foundations"
+}
+
+{
+  "set_name": "Starter Pack Alpha",
+  "number_of_cards": 50,
+  "date_of_release": "2025-11-18"
+}
+
+{
+  "tournament_name": "commander summer",
+  "tournament_description": "best tournament ever",
+  "format_name": "Commander",
+  "tournament_date": "2025-12-12",
+  "status": "Отменен"
+}
+
+{
+  "price": 12.00,
+  "keywords": ["Vigilance"],
+  "subtypes": ["Zombie"],
+  "colorless_mana": 8
 }

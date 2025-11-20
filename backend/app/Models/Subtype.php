@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subtype extends Model
 {
-    //
+    protected $primaryKey = 'subtype_id';
 }

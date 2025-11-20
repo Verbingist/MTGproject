@@ -15,8 +15,13 @@ class TournamentController extends Controller
             return response()->json(['message' => 'Турнир не найден', 'status' => 404], 404);
         return response()->json(['tournament' => $tournament, 'status' => 200], 200);
     }
-    public function getTournaments()
+    public function getTournaments(Request $request)
     {
+        $search = $request->query('search');
+        if ($search) {
+            $tournaments = Tournament::where('tournament_name', 'like', '%' . $search . '%')->orderBy('tournament_name')->paginate(8);
+            return response()->json(['tournaments' => $tournaments, 'status' => 200], 200);
+        }
         $tournaments = Tournament::paginate(8);
         return response()->json(['tournaments' => $tournaments, 'status' => 200], 200);
     }
@@ -39,16 +44,16 @@ class TournamentController extends Controller
             return response()->json(['message' => "Турнира не существует", 'status' => 404], 404);
         }
         $updated_data = [
-            "deck_name" => $request->tournament_name ?? $tournament->tournament_name,
-            "format_name" => $request->tournament_description ?? $tournament->tournament_description,
-            "power_level" => $request->format_name ?? $tournament->format_name,
+            "tournament_name" => $request->tournament_name ?? $tournament->tournament_name,
+            "tournament_description" => $request->tournament_description ?? $tournament->tournament_description,
+            "format_name" => $request->format_name ?? $tournament->format_name,
             "tournament_date" => $request->tournament_date ?? $tournament->tournament_date,
             "status" => $request->status ?? $tournament->status,
         ];
         Tournament::where('tournament_id', '=', $id)->update($updated_data);
         return response()->json(['message' => "Успешно обновлено", 'status' => 200], 200);
     }
-    public function deleteTounament($id)
+    public function deleteTournament($id)
     {
         if (Auth::user()->cannot('delete', Tournament::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
