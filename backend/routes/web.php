@@ -48,9 +48,11 @@ Route::get("/User/{id}", [UserController::class, 'getUser']);
 Route::get("/Users", [UserController::class, 'getUsers']);
 Route::put('/User/{id?}', [UserController::class, 'updateUser'])->middleware([Authenification::class, UpdateUserValidate::class]);
 Route::delete('/User/{id}', [UserController::class, 'deleteUser'])->middleware(Authenification::class);
+Route::get('/IsAuth', [UserController::class, 'isAuth']);
 
 Route::get('/Deck/{id}', [DeckController::class, 'getDeck']);
-Route::get('/Decks', [DeckController::class, 'getDecks']);
+Route::get('/Decks/{id?}', [DeckController::class, 'getDecks']);
+Route::get('/MyDecks', [DeckController::class, 'getMyDecks'])->middleware(Authenification::class);
 Route::post('/Deck', [DeckController::class, 'createDeck'])->middleware([Authenification::class, DeckCreationValidation::class]);
 Route::put('/Deck/{id}', [DeckController::class, 'updateDeck'])->middleware([Authenification::class, DeckUpdateValidation::class]);
 Route::delete('/Deck/{id}', [DeckController::class, 'deleteDecks'])->middleware(Authenification::class);

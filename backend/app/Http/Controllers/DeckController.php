@@ -17,14 +17,34 @@ class DeckController extends Controller
             return response()->json(['message' => 'Колода не найдена', 'status' => 404], 404);
         return response()->json(['deck' => $deck, 'status' => 200], 200);
     }
-    public function getDecks(Request $request)
+    public function getDecks(Request $request, $id = null)
     {
+        if ($id) {
+            $search = $request->query('search');
+            if ($search) {
+                $decks = Deck::where('deck_name', 'like', '%' . $search . '%')
+                    ->where('user_id', '=', $id)->orderBy('deck_name')->paginate(8);
+                return response()->json(['decks' => $decks, 'status' => 200], 200);
+            }
+            $decks = Deck::where('user_id', '=', $id)->orderBy('deck_name')->paginate(8);
+            return response()->json(['decks' => $decks, 'status' => 200], 200);
+        }
         $search = $request->query('search');
         if ($search) {
             $decks = Deck::where('deck_name', 'like', '%' . $search . '%')->orderBy('deck_name')->paginate(8);
             return response()->json(['decks' => $decks, 'status' => 200], 200);
         }
         $decks = Deck::orderBy('deck_name')->paginate(8);
+        return response()->json(['decks' => $decks, 'status' => 200], 200);
+    }
+    public function getMyDecks(Request $request)
+    {
+        $search = $request->query('search');
+        if ($search) {
+            $decks = Deck::where('deck_name', 'like', '%' . $search . '%')->where('user_id', '=', Auth::id())->orderBy('deck_name')->paginate(8);
+            return response()->json(['decks' => $decks, 'status' => 200], 200);
+        }
+        $decks = Deck::where('user_id', '=', Auth::id())->orderBy('deck_name')->paginate(8);
         return response()->json(['decks' => $decks, 'status' => 200], 200);
     }
     public function createDeck(Request $request)

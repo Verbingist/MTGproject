@@ -149,7 +149,7 @@ class UserController extends Controller
         ])->delete();
         return response()->json(['message' => 'Карта успешно удалена', 'status' => 200], 200);
     }
-    public function getCollection($user_id = null)
+    public function getCollection(Request $request, $user_id = null)
     {
         if (!$user_id) {
             if (Auth::check()) {
@@ -164,7 +164,23 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Пользователя не существует', 'status' => 404], 404);
         }
+        $search = $request->query('search');
+        if ($search) {
+            $collection = $user->getCards()->where('card_name', 'like', '%' . $search . '%')
+                ->select('card_name')->paginate(30);
+            return response()->json(['data' => $collection, 'status' => 200], 200);
+        }
         $collection = $user->getCards()->select('card_name')->paginate(30);
         return response()->json(['data' => $collection, 'status' => 200], 200);
+    }
+    public function isAuth()
+    {
+        if (Auth::check()) {
+            $role = User::where('id', '=', Auth::id())->value('role');
+            return response()->json(['message' => 'Авторизированы', 'auth' => true, 'role' => $role], 200);
+
+        } else {
+            return response()->json(['message' => 'Не авторизированы', 'auth' => false, 'role' => 4], 200);
+        }
     }
 }
