@@ -183,7 +183,16 @@ function closeWindow() {
 }
 
 function reloadPage() {
-    window.location.reload();
+    axios.post('http://localhost:8000/auth/registration', {
+        "first_name": registrationForm.firstname,
+        "last_name": registrationForm.lastname,
+        "email": registrationForm.email,
+        "login": registrationForm.login,
+        "password": registrationForm.password,
+        "age": registrationForm.age
+    })
+        .then(result => console.log(result))
+        .catch(error => console.log(error))
 }
 </script>
 
@@ -223,7 +232,8 @@ function reloadPage() {
             <div class="red" v-show="isVisibleErrors.ageError">{{ errors.ageError }}</div>
 
             <div class="loginClass">
-                <p>Уже есть аккаунт?<RouterLink class="loginButton" to="/Login">Вход</RouterLink></p>
+                <p>Уже есть аккаунт?<RouterLink class="loginButton" to="/Login">Вход</RouterLink>
+                </p>
             </div>
 
             <button id="Submit" class="input backButton" type="submit">Подтвердить</button>

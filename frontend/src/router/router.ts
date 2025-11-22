@@ -5,7 +5,6 @@ import loginPage from '../views/loginPage.vue';
 import MyCards from '../views/MyCards.vue';
 import MyDecks from '../views/MyDecks.vue';
 import Users from '../views/Users.vue';
-import info from '../views/info.vue';
 import profile from '../views/profile.vue';
 
 
@@ -59,14 +58,6 @@ const router = createRouter({
       component: Users,
       meta: {
         title: "Пользователи"
-      }
-    },
-    {
-      path: '/Info',
-      name: 'info',
-      component: info,
-      meta: {
-        title: "Информация"
       }
     },
     {

@@ -2,6 +2,21 @@
 import axios from 'axios';
 import headerComponent from '../components/headerComponent.vue';
 import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+let router = useRouter()
+
+let globalErrors = ref([]);
+let visibleError = ref(false);
+
+function addMesage(message) {
+    globalErrors.value.push(message)
+    visibleError.value = true;
+    setTimeout(function () {
+        visibleError.value = false;
+        globalErrors.value.pop();
+    }, 3000)
+}
 
 let confirmData = ref(false);
 
@@ -72,12 +87,18 @@ function closeWindow() {
 }
 
 function reloadPage() {
+    confirmData.value = false;
     axios.post('http://localhost:8000/auth/login', {
-        "login":registrationForm.login,
+        "login": registrationForm.login,
         "password": registrationForm.password
     })
-    .then(result => console.log(result))
-    .catch(error => console.log(error))
+        .then(result => {
+            addMesage('Успешный вход')
+            setTimeout(function () {
+                router.push('/')
+            }, 1000)
+        })
+        .catch(error => addMesage('Неудачная попытка входа'))
 }
 </script>
 
@@ -117,6 +138,7 @@ function reloadPage() {
                 <button class="submitbutton" @click="reloadPage">Подтвердить</button>
             </div>
         </div>
+        <div class="error" v-show="visibleError">{{ globalErrors.toString() }}</div>
     </main>
     <div v-show="confirmData" id="blur" @click="closeWindow"></div>
 </template>
@@ -148,7 +170,7 @@ function reloadPage() {
     justify-content: start;
     position: absolute;
     width: 550px;
-    height: 450px;
+    height: 300px;
     border: 2px solid #C93814;
     background-color: white;
     border-radius: 20px;
@@ -219,5 +241,19 @@ button {
 select,
 button {
     border-radius: 10px;
+}
+
+.error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    width: 50%;
+    height: 25%;
+    border: 3px solid black;
+    top: 70%;
+    left: 25%;
+    background-color: white;
+    border-radius: 20px;
 }
 </style>
