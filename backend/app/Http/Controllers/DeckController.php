@@ -47,6 +47,28 @@ class DeckController extends Controller
         $decks = Deck::where('user_id', '=', Auth::id())->orderBy('deck_name')->paginate(8);
         return response()->json(['decks' => $decks, 'status' => 200], 200);
     }
+    public function getCards($deck_id)
+    {
+        $cards = Deck::where('deck_id', '=', $deck_id)->first()->cards;
+        $returnCards = [];
+        foreach ($cards as $card) {
+            $mana_value = $card->mana_value;
+            $types = $card->types;
+            $subtypes = $card->subtypes;
+            $supertypes = $card->supertypes;
+            $keywords = $card->keywords;
+            $returnCard = [
+                'card' => $card,
+                'mana_value' => $mana_value,
+                'types' => $types,
+                'subtypes' => $subtypes,
+                'supertypes' => $supertypes,
+                'keywords' => $keywords
+            ];
+            $returnCards[] = $returnCard;
+        }
+        return response()->json(['cards' => $returnCards, 'status' => 200], status: 200);
+    }
     public function createDeck(Request $request)
     {
         $deck = $request->only('deck_name', 'format_name', 'power_level');
@@ -145,6 +167,6 @@ class DeckController extends Controller
     }
     public function isOwnDeck()
     {
-        return response()->json(['message' => 'Колода пользователя', 'status' => 200], 200);
+        return response()->json(['message' => 'Колода пользователя', 'isOwnDeck' => true, 'status' => 200], 200);
     }
 }

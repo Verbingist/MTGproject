@@ -12,10 +12,13 @@ class IsOwnDeck
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Не ваша колода, доступ запрещен', 'isOwnDeck' => false, 'status' => 200], 200);
+        }
         $isOwnDeck = Deck::where('user_id', '=', Auth::id())
             ->where('deck_id', '=', $request->route('id'))->first();
         if (!$isOwnDeck) {
-            return response()->json(['message' => 'Не ваша колода, доступ запрещен', 'status' => 403], 403);
+            return response()->json(['message' => 'Не ваша колода, доступ запрещен', 'isOwnDeck' => false, 'status' => 200], 200);
         }
         return $next($request);
     }

@@ -4,37 +4,25 @@ import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
-let globalErrors = ref([]);
-let visibleError = ref(false);
+let lots = ref([]);
 
-function addMessage(message) {
-    globalErrors.value.push(message);
-    visibleError.value = true;
-    setTimeout(function () {
-        visibleError.value = false;
-        globalErrors.value.pop();
-    }, 3000)
-}
+let route = useRoute()
 
-let decks = ref([]);
-
-function loadDecks() {
-    axios.get(`http://localhost:8000/MyDecks?page=${page.value}`)
+function loadLots() {
+    axios.get(`http://localhost:8000/Lots?page=${page.value}`)
         .then(result => {
-            decks.value = result.data.decks.data;
+            lots.value = result.data.lots.data
             checkPages();
         })
-        .catch(error => addMessage('Не удалось загрузить колоды'));
+        .catch(error => addMessage('Не удалось загрузить коллекцию'));
 }
 
-
-let route = useRoute();
-let page = computed(() => Number(route.query.page) || 1);
+let page = computed(() => Number(route.query.page) || 1)
 let firstPage = ref(true);
 let lastPage = ref(true);
 
 function checkPages() {
-    if (decks.value.length < 8) {
+    if (lots.value.length < 8) {
         lastPage.value = false;
     }
     else {
@@ -49,34 +37,36 @@ function checkPages() {
 }
 
 onMounted(() => {
-    loadDecks()
+    loadLots()
 })
 
 watch(page, (newPage) => {
-    loadDecks()
+    loadLots()
 })
-
-function removeDeck(deck) {
-    axios.delete(`http://localhost:8000/Deck/${deck.deck_id}`)
-        .then(result => {
-            console.log(result)
-            loadDecks();
-        })
-        .catch(error => addMessage('Не удалось удалить колоду'))
-}
 
 
 let search = ref('');
 
-function searchForDecks() {
-    axios.get(`http://localhost:8000/MyDecks?search=${search.value}`)
+function searchForLots() {
+    axios.get(`http://localhost:8000/Lots?search=${search.value}`)
         .then(result => {
-            decks.value = result.data.decks.data
+            lots.value = result.data.lots.data
             checkPages();
         })
-        .catch(error => console.log(error));
+        .catch(error => addMessage('Не удалось загрузить коллекцию'));
 }
 
+let globalMessage = ref([]);
+let visibleMessage = ref(false);
+
+function addMessage(message) {
+    globalMessage.value.push(message);
+    visibleMessage.value = true;
+    setTimeout(function () {
+        visibleMessage.value = false;
+        globalMessage.value.pop();
+    }, 3000);
+}
 </script>
 
 <template>
@@ -84,17 +74,13 @@ function searchForDecks() {
         <headerComponent />
     </header>
     <main class="wrapper">
-        <h2>Мои колоды</h2>
-        <input id="searchCards" class="input" type="text" placeholder="Поиск по своим колодам" v-model="search"
-            @input="searchForDecks">
-        <div class="cards">
-            <div v-for="deck in decks" class="deck">
-                <h3>Название: {{ deck.deck_name }}</h3>
-                <h3>Формат: {{ deck.format_name }}</h3>
-                <p>
-                    <RouterLink class="hrefToDeck" :to="{ path: '/Deck', query: { id: deck.deck_id } }">Просмотр</RouterLink>
-                </p>
-                <button class="delete-button" @click="removeDeck(deck)">Удалить колоду</button>
+        <h2>Объявления</h2>
+        <input class="input" type="text" placeholder="Поиск по объявлениям" v-model="search" @input="searchForLots">
+        <div class="lots">
+            <div v-for="lot in lots" class="lot">
+                <h3>{{ lot.lot_name }}</h3>
+                <p>{{ lot.lot_description }}</p>
+                <p><RouterLink class="author" :to="{ path: '/UserProfile', query: { user: lot.user_id } }">Владелец</RouterLink></p>
             </div>
         </div>
         <div class="pagination">
@@ -104,7 +90,7 @@ function searchForDecks() {
             <RouterLink v-show="lastPage" class="pagination-button"
                 :to="{ path: $route.path, query: { page: page + 1 } }">Следующая →</RouterLink>
         </div>
-        <div class="error" v-show="visibleError">{{ globalErrors.toString() }}</div>
+        <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
     </main>
 </template>
 
@@ -116,12 +102,12 @@ function searchForDecks() {
     justify-content: center;
 }
 
-.hrefToDeck {
+.author {
     text-decoration: none;
     color:#C93814;
 }
 
-.deck {
+.lot {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -133,7 +119,7 @@ function searchForDecks() {
     margin: 20px;
 }
 
-.cards {
+.lots {
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -183,7 +169,7 @@ function searchForDecks() {
     margin: 20px;
 }
 
-.error {
+.message {
     display: flex;
     justify-content: center;
     align-items: center;

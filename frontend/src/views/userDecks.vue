@@ -18,8 +18,11 @@ function addMessage(message) {
 
 let decks = ref([]);
 
+let route = useRoute()
+let id = computed(() => Number(route.query.user))
+
 function loadDecks() {
-    axios.get(`http://localhost:8000/MyDecks?page=${page.value}`)
+    axios.get(`http://localhost:8000/Decks/${id.value}?page=${page.value}`)
         .then(result => {
             decks.value = result.data.decks.data;
             checkPages();
@@ -28,7 +31,6 @@ function loadDecks() {
 }
 
 
-let route = useRoute();
 let page = computed(() => Number(route.query.page) || 1);
 let firstPage = ref(true);
 let lastPage = ref(true);
@@ -56,15 +58,6 @@ watch(page, (newPage) => {
     loadDecks()
 })
 
-function removeDeck(deck) {
-    axios.delete(`http://localhost:8000/Deck/${deck.deck_id}`)
-        .then(result => {
-            console.log(result)
-            loadDecks();
-        })
-        .catch(error => addMessage('Не удалось удалить колоду'))
-}
-
 
 let search = ref('');
 
@@ -76,7 +69,6 @@ function searchForDecks() {
         })
         .catch(error => console.log(error));
 }
-
 </script>
 
 <template>
@@ -94,7 +86,6 @@ function searchForDecks() {
                 <p>
                     <RouterLink class="hrefToDeck" :to="{ path: '/Deck', query: { id: deck.deck_id } }">Просмотр</RouterLink>
                 </p>
-                <button class="delete-button" @click="removeDeck(deck)">Удалить колоду</button>
             </div>
         </div>
         <div class="pagination">

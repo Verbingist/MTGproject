@@ -81,7 +81,6 @@ function removeCardFromCollection(card) {
         }
     })
         .then(result => {
-            console.log(result)
             loadCollection();
         })
         .catch(error => console.log(error))

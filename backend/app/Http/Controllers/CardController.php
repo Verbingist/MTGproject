@@ -50,7 +50,7 @@ class CardController extends Controller
         if ($search) {
             $cards = Card::where('card_name', 'like', '%' . $search . '%')->orderBy('card_name')->paginate(8);
         } else {
-            $cards = Card::orderBy('card_name')->paginate(8);
+            $cards = Card::orderBy('card_name')->paginate(6);
         }
         $returnCards = [];
         foreach ($cards as $card) {

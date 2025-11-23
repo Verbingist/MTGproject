@@ -13,8 +13,8 @@ class UserValidateRegistration
     {
         try {
             $request->validate([
-                'firstname' => 'required|alpha|min:4',
-                'secondname' => 'required|alpha|min:4',
+                'first_name' => 'required|alpha|min:4',
+                'last_name' => 'required|alpha|min:4',
                 'email' => 'required|email|unique:users',
                 'login' => 'required|unique:users|min:4',
                 'password' => 'required|min:4',
