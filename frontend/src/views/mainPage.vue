@@ -4,6 +4,19 @@ import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
+
+let isAuth = ref(false);
+
+function authCheck() {
+    axios.get(`http://localhost:8000/IsAuth`)
+        .then(result => {
+            isAuth.value = result.data.auth
+            checkPages();
+        })
+        .catch(error => addMessage("Не удалось аутентифицировать пользователя"));
+}
+
+
 let errors = ref([]);
 let visibleError = ref(false);
 
@@ -21,7 +34,7 @@ function loadTournaments() {
             checkPages();
         })
         .catch(error => {
-            addError('Не удалось загрузить турниры');
+            addMessage('Не удалось загрузить турниры');
         });
 }
 
@@ -41,6 +54,7 @@ function checkPages() {
 }
 
 onMounted(() => {
+    authCheck()
     loadTournaments()
 })
 
@@ -51,16 +65,16 @@ watch(page, (newPage) => {
 function signUpTournament(id) {
     axios.post(`http://localhost:8000/signUpTournament/${id}`)
         .then(result => loadTournaments())
-        .catch(error => addError('Не удалось записаться на турнир'))
+        .catch(error => addMessage('Не удалось записаться на турнир'))
 }
 
 function signDownTournament(id) {
     axios.delete(`http://localhost:8000/signDownTournament/${id}`)
         .then(result => loadTournaments())
-        .catch(error => addError('Не удалось удалить запись'))
+        .catch(error => addMessage('Не удалось удалить запись'))
 }
 
-function addError(message) {
+function addMessage(message) {
     errors.value.push(message)
     visibleError.value = true;
     setTimeout(function () {
@@ -75,17 +89,19 @@ function addError(message) {
         <headerComponent />
     </header>
     <main class="wrapper">
-        <h2>Турниры</h2>
+        <div class="logo">
+            <h2>Турниры</h2>
+        </div>
         <div v-for="tournament in tournaments" :key="tournament.tournament_id" class="tournament">
             <h3 class="name">Название: {{ tournament.tournament_name }}</h3>
             <p>Формат: {{ tournament.format_name }}</p>
             <p>Статус: {{ tournament.status }}</p>
             <p>Дата: {{ tournament.tournament_date }}</p>
             <p>Описание: {{ tournament.tournament_description ? tournament.tournament_description : "Нет" }}</p>
-            <p class="name">Запись: {{ tournament.signed }}</p>
-            <button v-show="tournament.signed == 'Не записан'" class="button"
+            <p class="name" v-show="isAuth">Запись: {{ tournament.signed }}</p>
+            <button v-show="tournament.signed == 'Не записан' && isAuth" class="button"
                 @click="signUpTournament(tournament.tournament_id)">Записаться</button>
-            <button v-show="tournament.signed == 'Записан'" class="button"
+            <button v-show="tournament.signed == 'Записан' && isAuth" class="button"
                 @click="signDownTournament(tournament.tournament_id)">Удалить запись</button>
         </div>
         <div class="pagination">
@@ -102,17 +118,24 @@ function addError(message) {
 <style scoped>
 .wrapper {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
 }
 
+.logo {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
 .tournament {
-    width: 70%;
+    width: 40%;
     border: 3px solid black;
     border-radius: 20px;
     padding: 20px;
-    margin: 20px;
+    margin: 40px;
 }
 
 .pagination {

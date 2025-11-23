@@ -3,12 +3,21 @@ import headerComponent from "../components/headerComponent.vue";
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
-import { useRouter } from 'vue-router';
 
-let router = useRouter();
+let globalMessage = ref([]);
+let visibleMessage = ref(false);
 
-let globalErrors = ref([]);
-let visibleError = ref(false);
+let route = useRoute()
+let id = computed(() => Number(route.query.user))
+
+let user = ref([]);
+
+axios.get(`http://localhost:8000/User/${id.value}`)
+    .then(result => {
+        user.value = result.data.user
+    })
+    .catch(error => addMessage("Не удалось получить пользователя"))
+
 
 function addMessage(message) {
     globalErrors.value.push(message);
@@ -18,23 +27,6 @@ function addMessage(message) {
         globalErrors.value.pop();
     }, 3000)
 }
-
-let user = ref([]);
-
-axios.get(`http://localhost:8000/User`)
-    .then(result => user.value = result.data.user)
-    .catch(error => addMessage("Не удалось загрузить данные о пользователе"))
-
-function logout() {
-    axios.get('http://localhost:8000/auth/logout')
-        .then(result => {
-            addMessage('Успешный выход')
-            setTimeout(function () {
-                router.push('/')
-            }, 1000)
-        })
-        .catch(error => addMessage("Не удалось выйти"))
-}
 </script>
 
 <template>
@@ -43,7 +35,7 @@ function logout() {
     </header>
     <main class="wrapper">
         <div class="logo">
-            <h2>Профиль</h2>
+            <h2>Профиль пользователя {{ user.login }}</h2>
         </div>
         <div class="info">
             <p>Имя: {{ user.first_name }}</p>
@@ -54,16 +46,13 @@ function logout() {
         </div>
         <div class="hrefs">
             <p>
-                <RouterLink class="locallink" to="/MyCards">Моя коллекция</RouterLink>
+                <RouterLink class="locallink" :to="{ path: '/UserCards', query: { user: id } }">Коллекция пользователя {{ user.login }}</RouterLink>
             </p>
             <p>
-                <RouterLink class="locallink" to="/Decks">Мои колоды</RouterLink>
-            </p>
-            <p>
-                <button class="locallink" @click="logout">Выйти из аккаунта</button>
+                <RouterLink class="locallink" :to="{ path: '/UserDecks', query: { user: id } }">Колоды пользователя {{ user.login }}</RouterLink>
             </p>
         </div>
-        <div class="message" v-show="visibleError">{{ globalErrors.toString() }}</div>
+        <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
     </main>
 </template>
 
@@ -88,15 +77,6 @@ function logout() {
     flex-direction: column;
     align-items: start;
     justify-content: center;
-}
-
-button {
-    background-color: white;
-    border: 0px;
-}
-
-button:hover {
-    cursor: pointer;
 }
 
 .locallink {

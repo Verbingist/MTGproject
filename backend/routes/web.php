@@ -44,7 +44,7 @@ Route::post('/signUpTournament/{tournamentId}', [UserController::class, 'signUpT
 Route::delete('/signDownTournament/{tournamentId}', [UserController::class, 'signDownTournament'])->middleware(Authenification::class);
 Route::post('/addCardToCollection', [UserController::class, 'addCardToCollection'])->middleware(Authenification::class);
 Route::delete('/removeCardFromCollection', [UserController::class, 'removeCardFromCollection'])->middleware(Authenification::class);
-Route::get("/User/{id}", [UserController::class, 'getUser']);
+Route::get("/User/{id?}", [UserController::class, 'getUser']);
 Route::get("/Users", [UserController::class, 'getUsers']);
 Route::put('/User/{id?}', [UserController::class, 'updateUser'])->middleware([Authenification::class, UpdateUserValidate::class]);
 Route::delete('/User/{id}', [UserController::class, 'deleteUser'])->middleware(Authenification::class);
@@ -59,7 +59,8 @@ Route::delete('/Deck/{id}', [DeckController::class, 'deleteDecks'])->middleware(
 Route::post('/addCardToDeck/{id}', [DeckController::class, 'addCardToDeck'])->middleware(Authenification::class);
 Route::delete('/removeCardFromDeck/{id}', [DeckController::class, 'removeCardFromDeck'])->middleware(Authenification::class);
 Route::get('/getAllCardsFromDeck/{id}', [DeckController::class, 'getAllCardsFromDeck']);
-Route::get('/isOwnDeck/{id}', [DeckController::class, 'isOwnDeck'])->middleware([Authenification::class, IsOwnDeck::class]);
+Route::get('/isOwnDeck/{id}', [DeckController::class, 'isOwnDeck'])->middleware(IsOwnDeck::class);
+Route::get('/CardsInDeck/{deck_id}', [DeckController::class, 'getCards']);
 
 Route::get('/Card/{id}', [CardController::class, 'getCard']);
 Route::get('/Cards', [CardController::class, 'getCards']);

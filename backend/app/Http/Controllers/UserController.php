@@ -16,8 +16,8 @@ class UserController extends Controller
     public function registration(Request $request)
     {
         User::insert([
-            'first_name' => $request->firstname,
-            'last_name' => $request->secondname,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'login' => $request->login,
             'password' => Hash::make($request->password),
@@ -35,17 +35,23 @@ class UserController extends Controller
     }
     public function logout(Request $request)
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Неуспешная попытка выхода'], 400);
+        }
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return response()->json(['message' => 'Успешный выход'], 200);
     }
-    public function getUser($id)
+    public function getUser($id = null)
     {
-        $userLogin = User::where('id', '=', $id)->value('login');
-        if (!$userLogin)
+        if (!$id && Auth::check()) {
+            $id = Auth::id();
+        }
+        $user = User::where('id', '=', $id)->first();
+        if (!$user)
             return response()->json(['message' => 'Пользователь не найден', 'status' => 404], 404);
-        return response()->json(['login' => $userLogin, 'status' => 200], 200);
+        return response()->json(['user' => $user, 'status' => 200], 200);
     }
     public function getUsers(Request $request)
     {
@@ -54,7 +60,7 @@ class UserController extends Controller
             $userLogin = User::where('login', 'like', '%' . $search . '%')->orderBy('login')->paginate(8);
             return response()->json(['logins' => $userLogin, 'status' => 200], 200);
         }
-        $userLogin = User::select('login')->orderBy('login')->paginate(8);
+        $userLogin = User::select('login', 'id')->orderBy('login')->paginate(8);
         return response()->json(['logins' => $userLogin, 'status' => 200], 200);
     }
     public function updateUser(Request $request, $id = null)

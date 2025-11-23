@@ -19,10 +19,10 @@ class TournamentController extends Controller
     {
         $search = $request->query('search');
         if ($search) {
-            $tournaments = Tournament::where('tournament_name', 'like', '%' . $search . '%')->orderBy('tournament_name')->paginate(8);
+            $tournaments = Tournament::where('tournament_name', 'like', '%' . $search . '%')->orderBy('tournament_date', 'desc')->paginate(8);
             return response()->json(['tournaments' => $tournaments, 'status' => 200], 200);
         }
-        $tournaments = Tournament::paginate(8);
+        $tournaments = Tournament::orderBy('tournament_date', 'desc')->paginate(8);
         return response()->json(['tournaments' => $tournaments, 'status' => 200], 200);
     }
     public function createTournament(Request $request)

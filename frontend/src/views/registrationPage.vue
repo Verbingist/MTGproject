@@ -1,6 +1,23 @@
 <script setup>
 import headerComponent from '../components/headerComponent.vue';
 import { reactive, ref } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+
+let router = useRouter();
+
+
+let globalErrors = ref([]);
+let visibleError = ref(false);
+
+function addMesage(message) {
+    globalErrors.value.push(message)
+    visibleError.value = true;
+    setTimeout(function () {
+        visibleError.value = false;
+        globalErrors.value.pop();
+    }, 3000)
+}
 
 let confirmData = ref(false);
 
@@ -183,6 +200,7 @@ function closeWindow() {
 }
 
 function reloadPage() {
+    confirmData.value = false;
     axios.post('http://localhost:8000/auth/registration', {
         "first_name": registrationForm.firstname,
         "last_name": registrationForm.lastname,
@@ -191,8 +209,13 @@ function reloadPage() {
         "password": registrationForm.password,
         "age": registrationForm.age
     })
-        .then(result => console.log(result))
-        .catch(error => console.log(error))
+        .then(result => {
+            addMesage('Успешная регистрация')
+            setTimeout(function () {
+                router.push('/Login')
+            }, 1000)
+        })
+        .catch(error => addMesage('Неудачная попытка регистрации'))
 }
 </script>
 
@@ -255,6 +278,7 @@ function reloadPage() {
                 <button class="submitbutton" @click="reloadPage">Подтвердить</button>
             </div>
         </div>
+        <div class="error" v-show="visibleError">{{ globalErrors.toString() }}</div>
     </main>
     <div v-show="confirmData" id="blur" @click="closeWindow"></div>
 </template>
@@ -357,5 +381,19 @@ button {
 select,
 button {
     border-radius: 10px;
+}
+
+.error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    width: 50%;
+    height: 25%;
+    border: 3px solid black;
+    top: 70%;
+    left: 25%;
+    background-color: white;
+    border-radius: 20px;
 }
 </style>
