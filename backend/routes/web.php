@@ -58,9 +58,10 @@ Route::put('/Deck/{id}', [DeckController::class, 'updateDeck'])->middleware([Aut
 Route::delete('/Deck/{id}', [DeckController::class, 'deleteDecks'])->middleware(Authenification::class);
 Route::post('/addCardToDeck/{id}', [DeckController::class, 'addCardToDeck'])->middleware(Authenification::class);
 Route::delete('/removeCardFromDeck/{id}', [DeckController::class, 'removeCardFromDeck'])->middleware(Authenification::class);
-Route::get('/getAllCardsFromDeck/{id}', [DeckController::class, 'getAllCardsFromDeck']);
 Route::get('/isOwnDeck/{id}', [DeckController::class, 'isOwnDeck'])->middleware(IsOwnDeck::class);
 Route::get('/CardsInDeck/{deck_id}', [DeckController::class, 'getCards']);
+Route::post('/setCommander/{id}', [DeckController::class, 'setCommander'])->middleware(Authenification::class);
+Route::delete('/deleteCommander/{id}', [DeckController::class, 'deleteCommander'])->middleware(Authenification::class);
 
 Route::get('/Card/{id}', [CardController::class, 'getCard']);
 Route::get('/Cards', [CardController::class, 'getCards']);
@@ -80,6 +81,7 @@ Route::delete('/Tournament/{id}', [TournamentController::class, 'deleteTournamen
 
 Route::get('/Lot/{id}', [TradingLotController::class, 'getLot']);
 Route::get('/Lots', [TradingLotController::class, 'getLots']);
+Route::get('/getUserLots/{id?}', [TradingLotController::class, 'getUserLots']);
 Route::post('/Lot', [TradingLotController::class, 'createLot'])->middleware([Authenification::class, LotCreationValidation::class]);
 Route::put('/Lot/{id}', [TradingLotController::class, 'updateLot'])->middleware([Authenification::class, LotUpdationValidation::class]);
 Route::delete('/Lot/{id}', [TradingLotController::class, 'deleteLot'])->middleware(Authenification::class);

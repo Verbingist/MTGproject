@@ -1,18 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import mainPage from '../views/mainPage.vue';
-import registrationPage from '../views/registrationPage.vue';
-import loginPage from '../views/loginPage.vue';
-import MyDecks from '../views/MyDecks.vue';
+import registrationPage from '../views/Auth/registrationPage.vue';
+import loginPage from '../views/Auth/loginPage.vue';
+import MyDecks from '../views/Decks/MyDecks.vue';
 import Users from '../views/Users.vue';
-import profile from '../views/profile.vue';
-import Deck from '../views/Deck.vue';
-import userCards from '../views/userCards.vue';
-import UserDecks from '../views/userDecks.vue';
-import UserProfile from '../views/UserProfile.vue';
-import Lots from '../views/Lots.vue';
-import Cards from '../views/cards.vue';
-import MyCards from '../views/MyCards.vue';
-import createDeck from '../views/createDeck.vue';
+import profile from '../views/Auth/profile.vue';
+import Deck from '../views/Decks/Deck.vue';
+import userCards from '../views/Cards/userCards.vue';
+import UserDecks from '../views/Decks/userDecks.vue';
+import UserProfile from '../views/Auth/UserProfile.vue';
+import Lots from '../views/Lots/Lots.vue';
+import Cards from '../views/Cards/cards.vue';
+import MyCards from '../views/Cards/MyCards.vue';
+import createDeck from '../views/Decks/createDeck.vue';
+import Decks from '../views/Decks/Decks.vue';
+import card from '../views/Cards/card.vue';
+import MyLots from '../views/Lots/MyLots.vue';
+import UserLots from '../views/Lots/UserLots.vue';
+import Lot from '../views/Lots/Lot.vue';
+import createLot from '../views/Lots/createLot.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,8 +48,8 @@ const router = createRouter({
       }
     },
     {
-      path: '/Decks',
-      name: 'decks',
+      path: '/MyDecks',
+      name: 'mydecks',
       component: MyDecks,
       meta: {
         title: "Колоды"
@@ -127,6 +133,54 @@ const router = createRouter({
       component: createDeck,
       meta: {
         title: "Создание колоды"
+      }
+    },
+    {
+      path: '/Decks',
+      name: 'Decks',
+      component: Decks,
+      meta: {
+        title: "Колоды"
+      }
+    },
+    {
+      path: '/Card',
+      name: 'card',
+      component: card,
+      meta: {
+        title: "Карта"
+      }
+    },
+    {
+      path: '/MyLots',
+      name: 'mylots',
+      component: MyLots,
+      meta: {
+        title: "Мои лоты"
+      }
+    },
+    {
+      path: '/UserLots',
+      name: 'userlots',
+      component: UserLots,
+      meta: {
+        title: "Объявления пользователя"
+      }
+    },
+    {
+      path: '/Lot',
+      name: 'lot',
+      component: Lot,
+      meta: {
+        title: "Объявление"
+      }
+    },
+    {
+      path: '/createLot',
+      name: 'createlot',
+      component: createLot,
+      meta: {
+        title: "Создать объявление"
       }
     }
   ],

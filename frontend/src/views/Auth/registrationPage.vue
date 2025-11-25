@@ -1,5 +1,5 @@
 <script setup>
-import headerComponent from '../components/headerComponent.vue';
+import headerComponent from '../../components/headerComponent.vue';
 import { reactive, ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';

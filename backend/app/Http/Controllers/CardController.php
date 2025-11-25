@@ -48,7 +48,7 @@ class CardController extends Controller
     {
         $search = $request->query('search');
         if ($search) {
-            $cards = Card::where('card_name', 'like', '%' . $search . '%')->orderBy('card_name')->paginate(8);
+            $cards = Card::where('card_name', 'ilike', '%' . $search . '%')->orderBy('card_name')->paginate(8);
         } else {
             $cards = Card::orderBy('card_name')->paginate(6);
         }

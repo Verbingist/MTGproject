@@ -19,7 +19,7 @@ class SetController extends Controller
     {
         $search = $request->query('search');
         if ($search) {
-            $sets = Set::where('set_name', 'like', '%' . $search . '%')->orderBy('set_name')->paginate(8);
+            $sets = Set::where('set_name', 'ilike', '%' . $search . '%')->orderBy('set_name')->paginate(8);
             return response()->json(['sets' => $sets, 'status' => 200], 200);
         }
         $sets = Set::orderBy('set_name')->paginate(8);

@@ -1,23 +1,45 @@
 <script setup>
-import headerComponent from "../components/headerComponent.vue";
+import headerComponent from '../../components/headerComponent.vue';
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
+let globalErrors = ref([]);
+let visibleError = ref(false);
+
+function addMessage(message) {
+    globalErrors.value.push(message);
+    visibleError.value = true;
+    setTimeout(function () {
+        visibleError.value = false;
+        globalErrors.value.pop();
+    }, 3000)
+}
+
 let lots = ref([]);
 
 let route = useRoute()
+let id = computed(() => Number(route.query.user))
 
 function loadLots() {
-    axios.get(`http://localhost:8000/Lots?page=${page.value}`)
+    axios.get(`http://localhost:8000/getUserLots/${id.value}?page=${page.value}`)
         .then(result => {
-            lots.value = result.data.lots.data
+            lots.value = result.data.lots.data;
             checkPages();
         })
-        .catch(error => addMessage('Не удалось загрузить коллекцию'));
+        .catch(error => addMessage('Не удалось загрузить объявления'));
 }
 
-let page = computed(() => Number(route.query.page) || 1)
+let user = ref([]);
+
+axios.get(`http://localhost:8000/User/${id.value}`)
+    .then(result => {
+        user.value = result.data.user
+    })
+    .catch(error => addMessage("Не удалось получить пользователя"))
+
+
+let page = computed(() => Number(route.query.page) || 1);
 let firstPage = ref(true);
 let lastPage = ref(true);
 
@@ -48,24 +70,12 @@ watch(page, (newPage) => {
 let search = ref('');
 
 function searchForLots() {
-    axios.get(`http://localhost:8000/Lots?search=${search.value}`)
+    axios.get(`http://localhost:8000/getUserLots/${id.value}?search=${search.value}`)
         .then(result => {
             lots.value = result.data.lots.data
             checkPages();
         })
-        .catch(error => addMessage('Не удалось загрузить коллекцию'));
-}
-
-let globalMessage = ref([]);
-let visibleMessage = ref(false);
-
-function addMessage(message) {
-    globalMessage.value.push(message);
-    visibleMessage.value = true;
-    setTimeout(function () {
-        visibleMessage.value = false;
-        globalMessage.value.pop();
-    }, 3000);
+        .catch(error => addMessage("Не удалось найти объявления"));
 }
 </script>
 
@@ -74,13 +84,17 @@ function addMessage(message) {
         <headerComponent />
     </header>
     <main class="wrapper">
-        <h2>Объявления</h2>
-        <input class="input" type="text" placeholder="Поиск по объявлениям" v-model="search" @input="searchForLots">
+        <h2>Объявления пользователя {{ user.login }}</h2>
+        <input class="input" type="text" placeholder="Поиск объявлений пользователя" v-model="search"
+            @input="searchForLots">
         <div class="lots">
             <div v-for="lot in lots" class="lot">
                 <h3>{{ lot.lot_name }}</h3>
                 <p>{{ lot.lot_description }}</p>
-                <p><RouterLink class="author" :to="{ path: '/UserProfile', query: { user: lot.user_id } }">Владелец</RouterLink></p>
+                <p>
+                    <RouterLink class="hrefToLot" :to="{ path: '/Lot', query: { id: lot.lot_id } }">Просмотр
+                    </RouterLink>
+                </p>
             </div>
         </div>
         <div class="pagination">
@@ -90,7 +104,7 @@ function addMessage(message) {
             <RouterLink v-show="lastPage" class="pagination-button"
                 :to="{ path: $route.path, query: { page: page + 1 } }">Следующая →</RouterLink>
         </div>
-        <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
+        <div class="error" v-show="visibleError">{{ globalErrors.toString() }}</div>
     </main>
 </template>
 
@@ -102,9 +116,9 @@ function addMessage(message) {
     justify-content: center;
 }
 
-.author {
+.hrefToLot {
     text-decoration: none;
-    color:#C93814;
+    color: #C93814;
 }
 
 .lot {
@@ -132,6 +146,7 @@ function addMessage(message) {
     border-radius: 20px;
     top: 220px;
     position: absolute;
+    padding: 10px;
     height: 400px;
     border: 3px solid black;
     background-color: white;
@@ -167,9 +182,10 @@ function addMessage(message) {
     width: 70%;
     border-radius: 20px;
     margin: 20px;
+    padding: 10px;
 }
 
-.message {
+.error {
     display: flex;
     justify-content: center;
     align-items: center;
