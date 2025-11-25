@@ -22,34 +22,36 @@ class DeckController extends Controller
         if ($id) {
             $search = $request->query('search');
             if ($search) {
-                $decks = Deck::where('deck_name', 'like', '%' . $search . '%')
-                    ->where('user_id', '=', $id)->orderBy('deck_name')->paginate(8);
+                $decks = Deck::where('deck_name', 'ilike', '%' . $search . '%')
+                    ->where('user_id', '=', $id)->orderBy('deck_name')->paginate(9);
                 return response()->json(['decks' => $decks, 'status' => 200], 200);
             }
-            $decks = Deck::where('user_id', '=', $id)->orderBy('deck_name')->paginate(8);
+            $decks = Deck::where('user_id', '=', $id)->orderBy('deck_name')->paginate(9);
             return response()->json(['decks' => $decks, 'status' => 200], 200);
         }
         $search = $request->query('search');
         if ($search) {
-            $decks = Deck::where('deck_name', 'like', '%' . $search . '%')->orderBy('deck_name')->paginate(8);
+            $decks = Deck::where('deck_name', 'like', '%' . $search . '%')->orderBy('deck_name')->paginate(9);
             return response()->json(['decks' => $decks, 'status' => 200], 200);
         }
-        $decks = Deck::orderBy('deck_name')->paginate(8);
+        $decks = Deck::orderBy('deck_name')->paginate(9);
         return response()->json(['decks' => $decks, 'status' => 200], 200);
     }
     public function getMyDecks(Request $request)
     {
         $search = $request->query('search');
         if ($search) {
-            $decks = Deck::where('deck_name', 'like', '%' . $search . '%')->where('user_id', '=', Auth::id())->orderBy('deck_name')->paginate(8);
+            $decks = Deck::where('deck_name', 'ilike', '%' . $search . '%')->where('user_id', '=', Auth::id())->orderBy('deck_name')->paginate(9);
             return response()->json(['decks' => $decks, 'status' => 200], 200);
         }
-        $decks = Deck::where('user_id', '=', Auth::id())->orderBy('deck_name')->paginate(8);
+        $decks = Deck::where('user_id', '=', Auth::id())->orderBy('deck_name')->paginate(9);
         return response()->json(['decks' => $decks, 'status' => 200], 200);
     }
     public function getCards($deck_id)
     {
-        $cards = Deck::where('deck_id', '=', $deck_id)->first()->cards;
+        $deck = Deck::where('deck_id', '=', $deck_id)->first();
+        $cards = $deck->cards;
+        $commander = Card::where('card_id', '=', $deck->commander_card_id)->first();
         $returnCards = [];
         foreach ($cards as $card) {
             $mana_value = $card->mana_value;
@@ -67,14 +69,21 @@ class DeckController extends Controller
             ];
             $returnCards[] = $returnCard;
         }
-        return response()->json(['cards' => $returnCards, 'status' => 200], status: 200);
+        return response()->json(['cards' => $returnCards, 'commander' => $commander, 'status' => 200], status: 200);
     }
     public function createDeck(Request $request)
     {
-        $deck = $request->only('deck_name', 'format_name', 'power_level');
+        if ($request->commander_card_name) {
+            $commander_id = Card::where('card_name', '=', $request->commander_card_name)->first();
+            if (!$commander_id) {
+                return response()->json(['message' => "Командира не существует", 'status' => 404], 404);
+            }
+            $request['commander_card_id'] = $commander_id->card_id;
+        }
+        $deck = $request->only('deck_name', 'format_name', 'power_level', 'commander_card_id');
         $deck['user_id'] = Auth::id();
-        Deck::insert($deck);
-        return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
+        $id = Deck::insertGetId($deck, 'deck_id');
+        return response()->json(['message' => "Успешно добавлено", 'deck_id' => $id, 'status' => 200], 200);
     }
     public function updateDeck(Request $request, $id)
     {
@@ -89,6 +98,7 @@ class DeckController extends Controller
             "deck_name" => $request->deck_name ?? $deck->deck_name,
             "format_name" => $request->format_name ?? $deck->format_name,
             "power_level" => $request->power_level ?? $deck->power_level,
+            "commander_card_id" => $request->commander_card_id ?? $deck->commander_card_id,
         ];
         Deck::where('deck_id', '=', $id)->update($updated_data);
         return response()->json(['message' => "Успешно обновлено", 'status' => 200], 200);
@@ -104,6 +114,40 @@ class DeckController extends Controller
         }
         Deck::where('deck_id', '=', $id)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
+    } 
+    public function setCommander(Request $request, $id)
+    {
+        $deck = Deck::where('deck_id', '=', $id)->first();
+        if (!$deck) {
+            return response()->json(['message' => "Колоды не существует", 'status' => 404], 404);
+        }
+        if ($request->user()->cannot('addCard', $deck)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
+        $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');
+        if (!$card_id) {
+            return response()->json(['message' => "Карты не существует", 'status' => 404], 404);
+        }
+        $updated_data = [
+            "commander_card_id" => $card_id,
+        ];
+        Deck::where('deck_id', '=', $id)->update($updated_data);
+        return response()->json(['message' => 'Успешно добавлено', 'status' => 200], 200);
+    }
+    public function deleteCommander($id)
+    {
+        $deck = Deck::where('deck_id', '=', $id)->first();
+        if (auth()->user()->cannot('removeCard', $deck)) {
+            return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
+        }
+        if (!$deck) {
+            return response()->json(['message' => "Колоды не существует", 'status' => 404], 404);
+        }
+        $updated_data = [
+            "commander_card_id" => null,
+        ];
+        Deck::where('deck_id', '=', $id)->update($updated_data);
+        return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
     public function addCardToDeck(Request $request, $id)
     {
@@ -118,13 +162,6 @@ class DeckController extends Controller
         if (!$card_id) {
             return response()->json(['message' => "Карты не существует", 'status' => 404], 404);
         }
-
-        $cardExistInDeck = Decks_cards::where('deck_id', '=', $id)
-            ->where('card_id', '=', $card_id)->first();
-        if ($cardExistInDeck) {
-            return response()->json(['message' => "Карта уже существует в колоде", 'status' => 400], 400);
-        }
-
         Decks_cards::insert([
             'card_id' => $card_id,
             'deck_id' => $id
@@ -151,19 +188,12 @@ class DeckController extends Controller
             return response()->json(['message' => "Карты не существует в колоде", 'status' => 400], 400);
         }
 
-        Decks_cards::where('deck_id', '=', $id)
-            ->where('card_id', '=', $card_id)->delete();
-        return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
-    }
-    public function getAllCardsFromDeck($id)
-    {
-        $returnedCards = [];
-        $cards = Decks_cards::where('deck_id', '=', $id)->get();
-        foreach ($cards as $card) {
-            $card_name = Card::where('card_id', '=', $card->card_id)->value('card_name');
-            $returnedCards[] = $card_name;
+        $decks_card = Decks_cards::where('deck_id', '=', $id)
+            ->where('card_id', '=', $card_id)->first();
+        if ($decks_card) {
+            $decks_card->delete();
         }
-        return response()->json(['cards' => $returnedCards], 200);
+        return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
     public function isOwnDeck()
     {

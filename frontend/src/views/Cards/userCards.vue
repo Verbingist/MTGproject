@@ -1,28 +1,38 @@
 <script setup>
-import headerComponent from "../components/headerComponent.vue";
+import headerComponent from '../../components/headerComponent.vue';
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
 let collection = ref([]);
 
+let route = useRoute()
+let id = computed(() => Number(route.query.user))
+
 function loadCollection() {
-    axios.get(`http://localhost:8000/Collection?page=${page.value}`)
+    axios.get(`http://localhost:8000/Collection/${id.value}?page=${page.value}`)
         .then(result => {
             collection.value = result.data.data.data
             checkPages();
         })
-        .catch(error => console.log(error));
+        .catch(error => addMessage('Не удалось загрузить коллекцию'));
 }
 
+let user = ref([]);
 
-let route = useRoute()
+axios.get(`http://localhost:8000/User/${id.value}`)
+    .then(result => {
+        user.value = result.data.user
+    })
+    .catch(error => addMessage("Не удалось получить пользователя"))
+
+
 let page = computed(() => Number(route.query.page) || 1)
 let firstPage = ref(true);
 let lastPage = ref(true);
 
 function checkPages() {
-    if (collection.value.length < 8) {
+    if (collection.value.length < 9) {
         lastPage.value = false;
     }
     else {
@@ -37,67 +47,36 @@ function checkPages() {
 }
 
 onMounted(() => {
-    loadCollection(page.value)
+    loadCollection()
 })
 
 watch(page, (newPage) => {
-    loadCollection(newPage)
+    loadCollection()
 })
-
-
-let newCard = ref('');
-let isSearchForAdd = ref(false);
-let foundCardsForAdd = ref([]);
-
-function startAdding() {
-    if (newCard.value.length < 3) {
-        isSearchForAdd.value = false;
-    }
-    else {
-        isSearchForAdd.value = true
-        axios.get(`http://localhost:8000/Cards?search=${newCard.value}&page=${page.value}`)
-            .then(result => {
-                foundCardsForAdd.value = result.data.cards
-            })
-            .catch(error => console.log(error))
-    }
-}
-
-function addCardToCollection(card) {
-    axios.post(`http://localhost:8000/addCardToCollection`, {
-        "card_name": card.card.card_name
-    })
-        .then(result => {
-            console.log(result)
-            loadCollection();
-        })
-        .catch(error => console.log(error))
-}
-
-function removeCardFromCollection(card) {
-    axios.delete(`http://localhost:8000/removeCardFromCollection`, {
-        data: {
-            "card_name": card.card_name
-        }
-    })
-        .then(result => {
-            loadCollection();
-        })
-        .catch(error => console.log(error))
-}
 
 
 let search = ref('');
 
 function searchForCards() {
-    axios.get(`http://localhost:8000/Collection?search=${search.value}`)
+    axios.get(`http://localhost:8000/Collection/${id.value}?search=${search.value}`)
         .then(result => {
             collection.value = result.data.data.data
             checkPages();
         })
-        .catch(error => console.log(error));
+        .catch(error => addMessage('Не удалось загрузить коллекцию'));
 }
 
+let globalMessage = ref([]);
+let visibleMessage = ref(false);
+
+function addMessage(message) {
+    globalMessage.value.push(message);
+    visibleMessage.value = true;
+    setTimeout(function () {
+        visibleMessage.value = false;
+        globalMessage.value.pop();
+    }, 3000)
+}
 </script>
 
 <template>
@@ -105,30 +84,22 @@ function searchForCards() {
         <headerComponent />
     </header>
     <main class="wrapper">
-        <h2>Моя коллекция</h2>
-        <input id="addCards" class="input" type="text" placeholder="Добавить карту в коллекцию" v-model="newCard"
-            @input="startAdding">
-        <div v-show="isSearchForAdd" class="added-cards">
-            <div v-for="card in foundCardsForAdd">
-                <div @click="addCardToCollection(card)">{{ card.card.card_name }}</div>
-            </div>
-        </div>
-        <input id="searchCards" class="input" type="text" placeholder="Поиск по коллекции" v-model="search"
-            @input="searchForCards">
+        <h2>Коллекция пользователя {{ user.login }}</h2>
+        <input class="input" type="text" placeholder="Поиск по коллекции" v-model="search" @input="searchForCards">
         <div class="cards">
             <div v-for="card in collection" class="card">
                 <h3>{{ card.card_name }}</h3>
                 <img class="card-image" :src="card.image_href">
-                <button class="delete-button" @click="removeCardFromCollection(card)">Удалить карту</button>
             </div>
         </div>
         <div class="pagination">
             <RouterLink v-show="firstPage" class="pagination-button"
-                :to="{ path: $route.path, query: { page: page - 1 } }">← Предыдущая</RouterLink>
+                :to="{ path: $route.path, query: { page: page - 1, user: id} }">← Предыдущая</RouterLink>
             <span>Страница: {{ page }}</span>
             <RouterLink v-show="lastPage" class="pagination-button"
-                :to="{ path: $route.path, query: { page: page + 1 } }">Следующая →</RouterLink>
+                :to="{ path: $route.path, query: { page: page + 1, user: id } }">Следующая →</RouterLink>
         </div>
+        <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
     </main>
 </template>
 
@@ -168,6 +139,7 @@ function searchForCards() {
     height: 400px;
     border: 3px solid black;
     background-color: white;
+    padding: 10px;
 }
 
 .delete-button {
@@ -200,5 +172,20 @@ function searchForCards() {
     width: 70%;
     border-radius: 20px;
     margin: 20px;
+    padding: 10px;
+}
+
+.message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    width: 50%;
+    height: 25%;
+    border: 3px solid black;
+    top: 70%;
+    left: 25%;
+    background-color: white;
+    border-radius: 20px;
 }
 </style>

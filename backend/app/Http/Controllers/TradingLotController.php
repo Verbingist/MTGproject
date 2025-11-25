@@ -19,10 +19,27 @@ class TradingLotController extends Controller
     {
         $search = $request->query('search');
         if ($search) {
-            $lots = Trading_lot::where('lot_name', 'like', '%' . $search . '%')->orderBy('lot_name')->paginate(8);
+            $lots = Trading_lot::where('lot_name', 'ilike', '%' . $search . '%')->orderBy('lot_name')->paginate(9);
             return response()->json(['lots' => $lots, 'status' => 200], 200);
         }
-        $lots = Trading_lot::orderBy('lot_name')->paginate(8);
+        $lots = Trading_lot::orderBy('lot_name')->paginate(9);
+        return response()->json(['lots' => $lots, 'status' => 200], 200);
+    }
+    public function getUserLots(Request $request, $id = null)
+    {
+        if (!$id) {
+            if (Auth::check()) {
+                $id = Auth::id();
+            } else {
+                return response()->json(['message' => 'Не аудентифицированы', 'status' => 401], 401);
+            }
+        }
+        $search = $request->query('search');
+        if ($search) {
+            $lots = Trading_lot::where('lot_name', 'ilike', '%' . $search . '%')->where('user_id', '=', $id)->orderBy('lot_name')->paginate(9);
+            return response()->json(['lots' => $lots, 'status' => 200], 200);
+        }
+        $lots = Trading_lot::where('user_id', '=', $id)->orderBy('lot_name')->paginate(9);
         return response()->json(['lots' => $lots, 'status' => 200], 200);
     }
     public function createLot(Request $request)

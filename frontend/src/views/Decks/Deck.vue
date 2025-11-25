@@ -1,5 +1,5 @@
 <script setup>
-import headerComponent from "../components/headerComponent.vue";
+import headerComponent from '../../components/headerComponent.vue';
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
@@ -26,6 +26,8 @@ function loadDeck() {
     axios.get(`http://localhost:8000/Deck/${deck_id.value}`)
         .then(result => {
             deck.value = result.data.deck
+            commander_id.value = result.data.deck.commander_card_id
+            loadCommander()
         })
         .catch(error => addMessage("Не удалось загрузить карты"));
 }
@@ -37,6 +39,21 @@ function loadCards() {
             cards.value = result.data.cards
         })
         .catch(error => addMessage("Не удалось загрузить колоду"));
+}
+
+let commander = ref([]);
+let commander_id = ref(0)
+
+function loadCommander() {
+    if (!commander_id.value) return;
+    axios.get(`http://localhost:8000/Card/${commander_id.value}`)
+        .then(result => {
+            commander.value = result.data.card;
+        })
+        .catch(error => {
+            commander.value = null;
+            addMessage("Не удалось загрузить командира")
+        });
 }
 
 onMounted(() => {
@@ -111,21 +128,32 @@ function addMessage(message) {
     </header>
     <main class="wrapper">
         <h2>Колода {{ deck.deck_name }}</h2>
-        <input v-show="auth" id="addCards" class="input" type="text" placeholder="Добавить карту в колоду" v-model="newCard"
-            @input="startAdding">
+        <input v-show="auth" id="addCards" class="input" type="text" placeholder="Добавить карту в колоду"
+            v-model="newCard" @input="startAdding">
         <div v-show="isSearchForAdd" class="added-cards">
             <div v-for="card in foundCardsForAdd">
                 <div @click="addCardToDeck(card)">{{ card.card.card_name }}</div>
             </div>
         </div>
         <div class="cards">
+            <div class="card" v-show="commander_id">
+                <h3>Коммандир колоды: {{ commander.card_name }}</h3>
+                <img class="card-image" :src="commander.image_href">
+                <p>
+                    <RouterLink class="cardInfo" to="/">Подробное описание</RouterLink>
+                </p>
+                <button v-show="auth" class="add-button" @click="removeCardFromDeck(card)">Удалить карту из
+                    колоды</button>
+                <button class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
+            </div>
             <div v-for="card in cards" class="card">
                 <h3>{{ card.card.card_name }}</h3>
                 <img class="card-image" :src="card.card.image_href">
                 <p>
-                    <RouterLink class="cardInfo" to="/">Подробное описание</RouterLink>
+                    <RouterLink class="cardInfo" :to="{path: '/Card', query: {id: card.card.card_id}}">Подробное описание</RouterLink>
                 </p>
-                <button v-show="auth" class="add-button" @click="removeCardFromDeck(card)">Удалить карту из колоды</button>
+                <button v-show="auth" class="add-button" @click="removeCardFromDeck(card)">Удалить карту из
+                    колоды</button>
                 <button class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
             </div>
         </div>
@@ -172,6 +200,7 @@ function addMessage(message) {
     top: 285px;
     position: absolute;
     height: 200px;
+    padding: 10px;
     border: 3px solid black;
     background-color: white;
 }
@@ -206,6 +235,7 @@ function addMessage(message) {
     width: 70%;
     border-radius: 20px;
     margin: 20px;
+    padding: 10px;
 }
 
 .message {

@@ -57,10 +57,10 @@ class UserController extends Controller
     {
         $search = $request->query('search');
         if ($search) {
-            $userLogin = User::where('login', 'like', '%' . $search . '%')->orderBy('login')->paginate(8);
+            $userLogin = User::where('login', 'ilike', '%' . $search . '%')->orderBy('login')->paginate(9);
             return response()->json(['logins' => $userLogin, 'status' => 200], 200);
         }
-        $userLogin = User::select('login', 'id')->orderBy('login')->paginate(8);
+        $userLogin = User::select('login', 'id')->orderBy('login')->paginate(9);
         return response()->json(['logins' => $userLogin, 'status' => 200], 200);
     }
     public function updateUser(Request $request, $id = null)
@@ -173,10 +173,10 @@ class UserController extends Controller
         $search = $request->query('search');
         if ($search) {
             $collection = $user->getCards()->where('card_name', 'like', '%' . $search . '%')
-                ->select('card_name')->paginate(30);
+                ->select('card_name')->paginate(9);
             return response()->json(['data' => $collection, 'status' => 200], 200);
         }
-        $collection = $user->getCards()->select('card_name')->paginate(30);
+        $collection = $user->getCards()->select('card_name')->paginate(9);
         return response()->json(['data' => $collection, 'status' => 200], 200);
     }
     public function isAuth()

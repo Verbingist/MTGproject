@@ -17,7 +17,7 @@ class FormatController extends Controller
     }
     public function getFormats()
     {
-        $formats = Format::paginate(8);
+        $formats = Format::all();
         return response()->json(['formats' => $formats, 'status' => 200], 200);
     }
     public function createFormat(Request $request)

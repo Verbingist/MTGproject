@@ -78,11 +78,12 @@ function searchForUsers() {
     <main class="wrapper">
         <div class="search">
             <h2>Пользователи</h2>
-            <input id="searchCards" class="input" type="text" placeholder="Поиск по пользователям" v-model="search"
+            <input id="searchCards" class="input" type="text" placeholder="Поиск пользователей" v-model="search"
                 @input="searchForUsers">
         </div>
         <div v-for="user in users" class="users">
-            <RouterLink :to="{ path: '/UserProfile', query: { user: user.id } }" class="name">{{ user.login }}</RouterLink>
+            <RouterLink :to="{ path: '/UserProfile', query: { user: user.id } }" class="name">{{ user.login }}
+            </RouterLink>
         </div>
         <div class="pagination">
             <RouterLink v-show="firstPage" class="pagination-button"
@@ -159,6 +160,7 @@ function searchForUsers() {
     width: 70%;
     border-radius: 20px;
     margin: 20px;
+    padding: 10px;
 }
 
 .search {

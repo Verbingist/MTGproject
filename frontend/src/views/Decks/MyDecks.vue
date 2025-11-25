@@ -1,29 +1,40 @@
 <script setup>
-import headerComponent from "../components/headerComponent.vue";
+import headerComponent from '../../components/headerComponent.vue';
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
-let cards = ref([]);
+let globalErrors = ref([]);
+let visibleError = ref(false);
 
-function loadCards() {
-    axios.get(`http://localhost:8000/Cards?page=${page.value}`)
+function addMessage(message) {
+    globalErrors.value.push(message);
+    visibleError.value = true;
+    setTimeout(function () {
+        visibleError.value = false;
+        globalErrors.value.pop();
+    }, 3000)
+}
+
+let decks = ref([]);
+
+function loadDecks() {
+    axios.get(`http://localhost:8000/MyDecks?page=${page.value}`)
         .then(result => {
-            console.log(result.data.cards)
-            cards.value = result.data.cards
+            decks.value = result.data.decks.data;
             checkPages();
         })
-        .catch(error => addMessage("Не удалось загрузить карты"));
+        .catch(error => addMessage('Не удалось загрузить колоды'));
 }
 
 
-let route = useRoute()
-let page = computed(() => Number(route.query.page) || 1)
+let route = useRoute();
+let page = computed(() => Number(route.query.page) || 1);
 let firstPage = ref(true);
 let lastPage = ref(true);
 
 function checkPages() {
-    if (cards.value.length < 6) {
+    if (decks.value.length < 9) {
         lastPage.value = false;
     }
     else {
@@ -38,45 +49,32 @@ function checkPages() {
 }
 
 onMounted(() => {
-    loadCards()
+    loadDecks()
 })
 
 watch(page, (newPage) => {
-    loadCards()
+    loadDecks()
 })
+
+function removeDeck(deck) {
+    axios.delete(`http://localhost:8000/Deck/${deck.deck_id}`)
+        .then(result => {
+            console.log(result)
+            loadDecks();
+        })
+        .catch(error => addMessage('Не удалось удалить колоду'))
+}
 
 
 let search = ref('');
 
-function searchForCards() {
-    axios.get(`http://localhost:8000/Cards?search=${search.value}&page=${page.value}`)
+function searchForDecks() {
+    axios.get(`http://localhost:8000/MyDecks?search=${search.value}`)
         .then(result => {
-            cards.value = result.data.cards
+            decks.value = result.data.decks.data
             checkPages();
         })
-        .catch(error => addMessage("Не удалось найти карты"));
-}
-
-function addCardToCollection(card) {
-    axios.post(`http://localhost:8000/addCardToCollection`, {
-        "card_name": card.card.card_name
-    })
-        .then(result => {
-            addMessage("Карта успешно добавлена в коллекцию")
-        })
-        .catch(error => addMessage("Не удалось добавить карту в коллекцию"));
-}
-
-let globalMessage = ref([]);
-let visibleMessage = ref(false);
-
-function addMessage(message) {
-    globalMessage.value.push(message);
-    visibleMessage.value = true;
-    setTimeout(function () {
-        visibleMessage.value = false;
-        globalMessage.value.pop();
-    }, 3000)
+        .catch(error => console.log(error));
 }
 </script>
 
@@ -85,15 +83,18 @@ function addMessage(message) {
         <headerComponent />
     </header>
     <main class="wrapper">
-        <h2>Карты</h2>
-        <input id="searchCards" class="input" type="text" placeholder="Поиск по коллекции" v-model="search"
-            @input="searchForCards">
+        <h2>Мои колоды</h2>
+        <input id="searchCards" class="input" type="text" placeholder="Поиск по своим колодам" v-model="search"
+            @input="searchForDecks">
         <div class="cards">
-            <div v-for="card in cards" class="card">
-                <h3>{{ card.card.card_name }}</h3>
-                <img class="card-image" :src="card.card.image_href">
-                <p><RouterLink class="cardInfo" to="/">Подробное описание</RouterLink></p>
-                <button class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
+            <div v-for="deck in decks" class="deck">
+                <h3>Название: {{ deck.deck_name }}</h3>
+                <h3>Формат: {{ deck.format_name }}</h3>
+                <p>
+                    <RouterLink class="hrefToDeck" :to="{ path: '/Deck', query: { id: deck.deck_id } }">Просмотр
+                    </RouterLink>
+                </p>
+                <button class="delete-button" @click="removeDeck(deck)">Удалить колоду</button>
             </div>
         </div>
         <div class="pagination">
@@ -103,7 +104,7 @@ function addMessage(message) {
             <RouterLink v-show="lastPage" class="pagination-button"
                 :to="{ path: $route.path, query: { page: page + 1 } }">Следующая →</RouterLink>
         </div>
-        <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
+        <div class="error" v-show="visibleError">{{ globalErrors.toString() }}</div>
     </main>
 </template>
 
@@ -115,12 +116,12 @@ function addMessage(message) {
     justify-content: center;
 }
 
-.cardInfo {
+.hrefToDeck {
     text-decoration: none;
-    color:#C93814;
+    color: #C93814;
 }
 
-.card {
+.deck {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -140,6 +141,13 @@ function addMessage(message) {
     justify-content: start;
 }
 
+.delete-button {
+    margin: 20px;
+    background: linear-gradient(90deg, rgba(201, 56, 20, 1) 0%, rgba(77, 45, 37, 1) 50%, rgba(0, 0, 0, 1) 100%);
+    color: white;
+    border-radius: 20px;
+}
+
 .added-cards {
     width: 70%;
     border-radius: 20px;
@@ -148,13 +156,7 @@ function addMessage(message) {
     height: 400px;
     border: 3px solid black;
     background-color: white;
-}
-
-.add-button {
-    margin: 20px;
-    background: linear-gradient(90deg, rgba(201, 56, 20, 1) 0%, rgba(77, 45, 37, 1) 50%, rgba(0, 0, 0, 1) 100%);
-    color: white;
-    border-radius: 20px;
+    padding: 10px;
 }
 
 .card-image {
@@ -180,9 +182,10 @@ function addMessage(message) {
     width: 70%;
     border-radius: 20px;
     margin: 20px;
+    padding: 10px;
 }
 
-.message {
+.error {
     display: flex;
     justify-content: center;
     align-items: center;

@@ -1,38 +1,28 @@
 <script setup>
-import headerComponent from "../components/headerComponent.vue";
+import headerComponent from '../../components/headerComponent.vue';
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
-let collection = ref([]);
+let lots = ref([]);
 
-let route = useRoute()
-let id = computed(() => Number(route.query.user))
-
-function loadCollection() {
-    axios.get(`http://localhost:8000/Collection/${id.value}?page=${page.value}`)
+function loadLots() {
+    axios.get(`http://localhost:8000/getUserLots?page=${page.value}`)
         .then(result => {
-            collection.value = result.data.data.data
+            lots.value = result.data.lots.data
             checkPages();
         })
-        .catch(error => addMessage('Не удалось загрузить коллекцию'));
+        .catch(error => addMessage("Не удалось загрузить объявления"));
 }
 
-let user = ref([]);
 
-axios.get(`http://localhost:8000/User/${id.value}`)
-    .then(result => {
-        user.value = result.data.user
-    })
-    .catch(error => addMessage("Не удалось получить пользователя"))
-
-
+let route = useRoute()
 let page = computed(() => Number(route.query.page) || 1)
 let firstPage = ref(true);
 let lastPage = ref(true);
 
 function checkPages() {
-    if (collection.value.length < 8) {
+    if (lots.value.length < 9) {
         lastPage.value = false;
     }
     else {
@@ -47,34 +37,42 @@ function checkPages() {
 }
 
 onMounted(() => {
-    loadCollection()
+    loadLots()
 })
 
 watch(page, (newPage) => {
-    loadCollection()
+    loadLots()
 })
+
+function deleteLot(lot_id) {
+    axios.delete(`http://localhost:8000/Lot/${lot_id}`)
+        .then(result => {
+            loadLots();
+        })
+        .catch(error => addMessage('Не удалось удалить объявление'))
+}
 
 
 let search = ref('');
 
-function searchForCards() {
-    axios.get(`http://localhost:8000/Collection/${id.value}?search=${search.value}`)
+function searchForLots() {
+    axios.get(`http://localhost:8000/getUserLots?search=${search.value}`)
         .then(result => {
-            collection.value = result.data.data.data
+            lots.value = result.data.data.data
             checkPages();
         })
-        .catch(error => addMessage('Не удалось загрузить коллекцию'));
+        .catch(error => addMessage("Не удалось найти объявления"));
 }
 
-let globalMessage = ref([]);
-let visibleMessage = ref(false);
+let globalErrors = ref([]);
+let visibleError = ref(false);
 
 function addMessage(message) {
-    globalMessage.value.push(message);
-    visibleMessage.value = true;
+    globalErrors.value.push(message);
+    visibleError.value = true;
     setTimeout(function () {
-        visibleMessage.value = false;
-        globalMessage.value.pop();
+        visibleError.value = false;
+        globalErrors.value.pop();
     }, 3000)
 }
 </script>
@@ -84,13 +82,17 @@ function addMessage(message) {
         <headerComponent />
     </header>
     <main class="wrapper">
-        <h2>Коллекция пользователя {{ user.login }}</h2>
-        <input class="input" type="text" placeholder="Поиск по коллекции" v-model="search"
-            @input="searchForCards">
-        <div class="cards">
-            <div v-for="card in collection" class="card">
-                <h3>{{ card.card_name }}</h3>
-                <img class="card-image" :src="card.image_href">
+        <h2>Мои объявления</h2>
+        <input class="input" type="text" placeholder="Поиск своих объявлений" v-model="search" @input="searchForLots">
+        <div class="lots">
+            <div v-for="lot in lots" class="lot">
+                <h3>{{ lot.lot_name }}</h3>
+                <p>{{ lot.lot_description }}</p>
+                <p>
+                    <RouterLink class="hrefToLot" :to="{ path: '/Lot', query: { id: lot.lot_id } }">Просмотр
+                    </RouterLink>
+                </p>
+                <button class="delete-button" @click="deleteLot(lot.lot_id)">Удалить лот</button>
             </div>
         </div>
         <div class="pagination">
@@ -100,7 +102,7 @@ function addMessage(message) {
             <RouterLink v-show="lastPage" class="pagination-button"
                 :to="{ path: $route.path, query: { page: page + 1 } }">Следующая →</RouterLink>
         </div>
-        <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
+        <div class="message" v-show="visibleError">{{ globalErrors.toString() }}</div>
     </main>
 </template>
 
@@ -112,7 +114,7 @@ function addMessage(message) {
     justify-content: center;
 }
 
-.card {
+.lot {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -124,7 +126,7 @@ function addMessage(message) {
     margin: 20px;
 }
 
-.cards {
+.lots {
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -132,10 +134,16 @@ function addMessage(message) {
     justify-content: start;
 }
 
+.hrefToLot {
+    text-decoration: none;
+    color: #C93814;
+}
+
 .added-cards {
     width: 70%;
     border-radius: 20px;
-    top: 220px;
+    top: 290px;
+    padding: 10px;
     position: absolute;
     height: 400px;
     border: 3px solid black;
@@ -170,6 +178,7 @@ function addMessage(message) {
 
 .input {
     width: 70%;
+    padding: 10px;
     border-radius: 20px;
     margin: 20px;
 }

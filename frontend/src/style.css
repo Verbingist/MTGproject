@@ -1,13 +1,13 @@
 @font-face {
-    font-family: 'RuslanDisplay';
-    src: url('../src/assets/RuslanDisplay.ttf');
+    font-family: 'MagicCyr';
+    src: url('../src/assets/Magic\ \ Cyr\ Remake\ 0.2.2.ttf');
 }
 
 html,
 body {
     height: 100%;
     background: white;
-    font-family: 'RuslanDisplay', sans-serif;
+    font-family: 'MagicCyr', sans-serif;
     font-weight: lighter;
     font-size: 22px;
 }
