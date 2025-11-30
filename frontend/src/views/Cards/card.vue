@@ -4,6 +4,18 @@ import { reactive, ref, computed, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
+let auth = ref(false)
+
+function authCheck() {
+    axios.get('http://localhost:8000/IsAuth')
+        .then(result => {
+            if (result.data.role != 4) {
+                auth.value = true;
+            }
+        })
+        .catch(error => addMessage('Не удалось проверить авторизацию'))
+}
+
 let route = useRoute()
 let card_id = computed(() => Number(route.query.id))
 
@@ -56,17 +68,17 @@ function addMessage(message) {
             </div>
             <div class="card-info">
                 <div class="mana-value">
-                    <p class="mana-value-data" v-show="card.mana_value?.white_mana">white mana: {{
+                    <p class="mana-value-data" v-show="card.mana_value?.white_mana">Белая: {{
                         card.mana_value?.white_mana }}</p>
-                    <p class="mana-value-data" v-show="card.mana_value?.blue_mana">blue mana: {{
+                    <p class="mana-value-data" v-show="card.mana_value?.blue_mana">Синяя: {{
                         card.mana_value?.blue_mana }}</p>
-                    <p class="mana-value-data" v-show="card.mana_value?.black_mana">black mana: {{
+                    <p class="mana-value-data" v-show="card.mana_value?.black_mana">Черная: {{
                         card.mana_value?.black_mana }}</p>
-                    <p class="mana-value-data" v-show="card.mana_value?.red_mana">red mana: {{ card.mana_value?.red_mana
+                    <p class="mana-value-data" v-show="card.mana_value?.red_mana">Красная: {{ card.mana_value?.red_mana
                         }}</p>
-                    <p class="mana-value-data" v-show="card.mana_value?.green_mana">green mana: {{
+                    <p class="mana-value-data" v-show="card.mana_value?.green_mana">Зеленая: {{
                         card.mana_value?.green_mana }}</p>
-                    <p class="mana-value-data" v-show="card.mana_value?.colorless_mana">generic mana: {{
+                    <p class="mana-value-data" v-show="card.mana_value?.colorless_mana">Бесцветная: {{
                         card.mana_value?.colorless_mana }}</p>
                 </div>
                 <div class="types">
@@ -83,7 +95,7 @@ function addMessage(message) {
 
                 <div>Художник: {{ card.card?.illustration_author }}</div>
                 <div>Цена: {{ card.card?.price }}$</div>
-                <button class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
+                <button v-show="auth" class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
             </div>
         </div>
         <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>

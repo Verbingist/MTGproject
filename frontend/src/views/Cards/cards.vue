@@ -4,6 +4,18 @@ import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
+let auth = ref(false)
+
+function authCheck() {
+    axios.get('http://localhost:8000/IsAuth')
+        .then(result => {
+            if (result.data.role != 4) {
+                auth.value = true;
+            }
+        })
+        .catch(error => addMessage('Не удалось проверить авторизацию'))
+}
+
 let cards = ref([]);
 
 function loadCards() {
@@ -39,6 +51,7 @@ function checkPages() {
 
 onMounted(() => {
     loadCards()
+    authCheck()
 })
 
 watch(page, (newPage) => {
@@ -95,7 +108,7 @@ function addMessage(message) {
                 <p>
                     <RouterLink class="cardInfo" :to="{path: '/Card', query: {id: card.card.card_id}}">Подробное описание</RouterLink>
                 </p>
-                <button class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
+                <button v-show="auth" class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
             </div>
         </div>
         <div class="pagination">

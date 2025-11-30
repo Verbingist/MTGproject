@@ -8,6 +8,7 @@ use App\Models\Cards_sets;
 use App\Models\Cards_subtypes;
 use App\Models\Cards_supertypes;
 use App\Models\Cards_types;
+use App\Models\Format;
 use App\Models\Keyword;
 use App\Models\Mana_value;
 use App\Models\Set;
@@ -48,7 +49,7 @@ class CardController extends Controller
     {
         $search = $request->query('search');
         if ($search) {
-            $cards = Card::where('card_name', 'ilike', '%' . $search . '%')->orderBy('card_name')->paginate(8);
+            $cards = Card::where('card_name', 'ilike', '%' . $search . '%')->orderBy('card_name')->paginate(6);
         } else {
             $cards = Card::orderBy('card_name')->paginate(6);
         }
@@ -181,9 +182,17 @@ class CardController extends Controller
         Card::where('card_id', '=', $id)->delete();
         return response()->json(['message' => "Успешно удалено", 'status' => 200], 200);
     }
-    public function getRestrictedCards()
+    public function getRestrictedCards($format_name = null)
     {
-        $cards = Restricted_card::orderBy('card_id')->paginate(8);
+        if ($format_name) {
+            $format = Format::where('format_name', '=', $format_name)->first();
+            if (!$format) {
+                return response()->json(['message' => 'Формата не существует', 'status' => 404], 404);
+            }
+            $cards = Restricted_card::where('format_name', '=', $format_name)->join('cards', 'restricted_cards.card_id', '=', 'cards.card_id')->orderBy('card_name')->paginate(9);
+            return response()->json(['cards' => $cards, 'status' => 200], 200);
+        }
+        $cards = Restricted_card::join('cards', 'restricted_cards.card_id', '=', 'cards.card_id')->orderBy('card_name')->paginate(9);
         return response()->json(['cards' => $cards, 'status' => 200], 200);
     }
     public function createRestrictedCard(Request $request)

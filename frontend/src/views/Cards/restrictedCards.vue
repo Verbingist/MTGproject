@@ -4,47 +4,39 @@ import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
-let globalErrors = ref([]);
-let visibleError = ref(false);
+let auth = ref(false)
 
-function addMessage(message) {
-    globalErrors.value.push(message);
-    visibleError.value = true;
-    setTimeout(function () {
-        visibleError.value = false;
-        globalErrors.value.pop();
-    }, 3000)
+function authCheck() {
+    axios.get('http://localhost:8000/IsAuth')
+        .then(result => {
+            if (result.data.role != 4) {
+                auth.value = true;
+            }
+        })
+        .catch(error => addMessage('Не удалось проверить авторизацию'))
 }
 
-let decks = ref([]);
+let cards = ref([]);
+let format = computed(() => route.query.format)
 
-let route = useRoute()
-let id = computed(() => Number(route.query.user))
-
-function loadDecks() {
-    axios.get(`http://localhost:8000/Decks/${id.value}?page=${page.value}`)
+function loadCards() {
+    axios.get(`http://localhost:8000/RestrictedCards/${format.value}?page=${page.value}`)
         .then(result => {
-            decks.value = result.data.decks.data;
+            console.log(result.data.cards.data)
+            cards.value = result.data.cards.data
             checkPages();
         })
-        .catch(error => addMessage('Не удалось загрузить колоды'));
+        .catch(error => addMessage("Не удалось загрузить карты"));
 }
 
-let user = ref([]);
 
-axios.get(`http://localhost:8000/User/${id.value}`)
-    .then(result => {
-        user.value = result.data.user
-    })
-    .catch(error => addMessage("Не удалось получить пользователя"))
-
-
-let page = computed(() => Number(route.query.page) || 1);
+let route = useRoute()
+let page = computed(() => Number(route.query.page) || 1)
 let firstPage = ref(true);
 let lastPage = ref(true);
 
 function checkPages() {
-    if (decks.value.length < 8) {
+    if (cards.value.length < 6) {
         lastPage.value = false;
     }
     else {
@@ -59,23 +51,35 @@ function checkPages() {
 }
 
 onMounted(() => {
-    loadDecks()
+    loadCards()
+    authCheck()
 })
 
 watch(page, (newPage) => {
-    loadDecks()
+    loadCards()
 })
 
 
-let search = ref('');
-
-function searchForDecks() {
-    axios.get(`http://localhost:8000/MyDecks?search=${search.value}`)
+function addCardToCollection(card) {
+    axios.post(`http://localhost:8000/addCardToCollection`, {
+        "card_name": card.card.card_name
+    })
         .then(result => {
-            decks.value = result.data.decks.data
-            checkPages();
+            addMessage("Карта успешно добавлена в коллекцию")
         })
-        .catch(error => console.log(error));
+        .catch(error => addMessage("Не удалось добавить карту в коллекцию"));
+}
+
+let globalMessage = ref([]);
+let visibleMessage = ref(false);
+
+function addMessage(message) {
+    globalMessage.value.push(message);
+    visibleMessage.value = true;
+    setTimeout(function () {
+        visibleMessage.value = false;
+        globalMessage.value.pop();
+    }, 3000)
 }
 </script>
 
@@ -84,17 +88,20 @@ function searchForDecks() {
         <headerComponent />
     </header>
     <main class="wrapper">
-        <h2>Колоды пользователя {{ user.login }}</h2>
-        <input id="searchCards" class="input" type="text" placeholder="Поиск по своим колодам" v-model="search"
-            @input="searchForDecks">
+        <h2>Ограниченные карты в формате {{ format }}</h2>
         <div class="cards">
-            <div v-for="deck in decks" class="deck">
-                <h3>Название: {{ deck.deck_name }}</h3>
-                <h3>Формат: {{ deck.format_name }}</h3>
+            <div v-for="card in cards" class="card">
+                <h3>{{ card.card_name }}</h3>
+                <p>Тип ограничения: {{ card.restriction_type }}</p>
+                <p>Причина: {{ card.restriction_description }}</p>
+                <p>Дата ограничения: {{ card.date_of_restriction }}</p>
+                <img class="card-image" :src="card.image_href">
                 <p>
-                    <RouterLink class="hrefToDeck" :to="{ path: '/Deck', query: { id: deck.deck_id } }">Просмотр
+                    <RouterLink class="cardInfo" :to="{ path: '/Card', query: { id: card.card_id } }">Подробное описание
                     </RouterLink>
                 </p>
+                <button v-show="auth" class="add-button" @click="addCardToCollection(card)">Добавить в
+                    коллекцию</button>
             </div>
         </div>
         <div class="pagination">
@@ -104,7 +111,7 @@ function searchForDecks() {
             <RouterLink v-show="lastPage" class="pagination-button"
                 :to="{ path: $route.path, query: { page: page + 1 } }">Следующая →</RouterLink>
         </div>
-        <div class="error" v-show="visibleError">{{ globalErrors.toString() }}</div>
+        <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
     </main>
 </template>
 
@@ -116,12 +123,12 @@ function searchForDecks() {
     justify-content: center;
 }
 
-.hrefToDeck {
+.cardInfo {
     text-decoration: none;
     color: #C93814;
 }
 
-.deck {
+.card {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -145,14 +152,14 @@ function searchForDecks() {
     width: 70%;
     border-radius: 20px;
     top: 220px;
-    position: absolute;
     padding: 10px;
+    position: absolute;
     height: 400px;
     border: 3px solid black;
     background-color: white;
 }
 
-.delete-button {
+.add-button {
     margin: 20px;
     background: linear-gradient(90deg, rgba(201, 56, 20, 1) 0%, rgba(77, 45, 37, 1) 50%, rgba(0, 0, 0, 1) 100%);
     color: white;
@@ -180,12 +187,12 @@ function searchForDecks() {
 
 .input {
     width: 70%;
+    padding: 10px;
     border-radius: 20px;
     margin: 20px;
-    padding: 10px;
 }
 
-.error {
+.message {
     display: flex;
     justify-content: center;
     align-items: center;

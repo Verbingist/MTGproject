@@ -13,7 +13,7 @@ class TournamentUpdateValidation
     {
         try {
             $request->validate([
-                'tournament_name' => 'nullable|unique:tournaments,tournament_name|min:4',
+                'tournament_name' => 'nullable',
                 'tournament_description' => 'nullable',
                 'format_name' => 'nullable|exists:formats,format_name',
                 'tournament_date' => 'nullable|date|after:tomorrow',

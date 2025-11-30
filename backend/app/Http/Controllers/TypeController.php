@@ -17,7 +17,7 @@ class TypeController extends Controller
     }
     public function getTypes()
     {
-        $types = Type::paginate(8);
+        $types = Type::all();
         return response()->json(['types' => $types, 'status' => 200], 200);
     }
     public function createType(Request $request)
