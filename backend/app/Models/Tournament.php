@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class Tournament extends Model
 {
     protected $appends = ['signed'];
+    protected $primaryKey = 'tournament_id';
 
     public function getSignedAttribute()
     {
@@ -18,5 +19,9 @@ class Tournament extends Model
             }
         }
         return "Не записан";
+    }
+    public function users()
+    {
+        return $this->belongsToMany(User::class, Users_tournament::class, 'tournament_id', 'user_id');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Users_tournament;
 use Illuminate\Http\Request;
 use App\Models\Tournament;
 use Illuminate\Support\Facades\Auth;
@@ -64,5 +65,14 @@ class TournamentController extends Controller
         }
         Tournament::where('tournament_id', '=', $id)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
+    }
+    public function getUsers($id)
+    {
+        $tournament = Tournament::where('tournament_id', '=', $id)->first();
+        if (!$tournament) {
+            return response()->json(['message' => "Турнира не существует", 'status' => 404], 404);
+        }
+        $users = $tournament->users;
+        return response()->json(['users' => $users, 'status' => 200], 200);
     }
 }

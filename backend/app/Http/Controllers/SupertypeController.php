@@ -17,7 +17,7 @@ class SupertypeController extends Controller
     }
     public function getSupertypes()
     {
-        $supertypes = Supertype::paginate(8);
+        $supertypes = Supertype::all();
         return response()->json(['supertypes' => $supertypes, 'status' => 200], 200);
     }
     public function createSupertype(Request $request)

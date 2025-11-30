@@ -1,16 +1,18 @@
 <script setup>
-import headerComponent from "../components/headerComponent.vue";
+import headerComponent from "../../components/headerComponent.vue";
 import { reactive, ref, computed, watch, onMounted } from 'vue';
 import axios from "axios";
 import { useRoute } from 'vue-router'
 
 
 let isAuth = ref(false);
+let role = ref(4);
 
 function authCheck() {
     axios.get(`http://localhost:8000/IsAuth`)
         .then(result => {
             isAuth.value = result.data.auth
+            role.value = result.data.role
             checkPages();
         })
         .catch(error => addMessage("Не удалось аутентифицировать пользователя"));
@@ -74,6 +76,12 @@ function signDownTournament(id) {
         .catch(error => addMessage('Не удалось удалить запись'))
 }
 
+function deleteTournament(id) {
+    axios.delete(`http://localhost:8000/Tournament/${id}`)
+        .then(result => loadTournaments())
+        .catch(error => addMessage('Не удалось удалить турнир'))
+}
+
 function addMessage(message) {
     errors.value.push(message)
     visibleError.value = true;
@@ -99,10 +107,17 @@ function addMessage(message) {
             <p>Дата: {{ tournament.tournament_date }}</p>
             <p>Описание: {{ tournament.tournament_description ? tournament.tournament_description : "Нет" }}</p>
             <p class="name" v-show="isAuth">Запись: {{ tournament.signed }}</p>
+            <p>
+                <RouterLink class="info" :to="{ path: '/Tournament', query: { id: tournament.tournament_id } }">
+                    Подробнее
+                </RouterLink>
+            </p>
             <button v-show="tournament.signed == 'Не записан' && isAuth" class="button"
                 @click="signUpTournament(tournament.tournament_id)">Записаться</button>
             <button v-show="tournament.signed == 'Записан' && isAuth" class="button"
                 @click="signDownTournament(tournament.tournament_id)">Удалить запись</button>
+            <button v-show="isAuth && role <= 2" class="button"
+                @click="deleteTournament(tournament.tournament_id)">Удалить турнир</button>
         </div>
         <div class="pagination">
             <RouterLink v-show="firstPage" class="pagination-button"
@@ -145,6 +160,11 @@ function addMessage(message) {
     align-items: center;
     width: 100%;
     height: 50px;
+}
+
+.info {
+    text-decoration: none;
+    color: #C93814;
 }
 
 .pagination-button {

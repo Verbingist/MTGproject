@@ -66,9 +66,6 @@ function revealBurger() {
                     <div class="href-line">
                         <RouterLink class="sub-navigation" to="/">Главная</RouterLink>
                         <RouterLink class="sub-navigation" to="/Users">Пользователи</RouterLink>
-                        <RouterLink class="sub-navigation" to="/Lots">Лоты</RouterLink>
-                        <RouterLink class="sub-navigation" to="/Cards">Карты</RouterLink>
-                        <RouterLink class="sub-navigation" to="/Decks">Колоды</RouterLink>
                     </div>
                 </div>
             </div>
@@ -82,14 +79,19 @@ function revealBurger() {
                     <div @click="revealBurger" class="close-burger-sub pointer">☓</div>
                 </div>
                 <div class="burger-hrefs">
+                    <RouterLink class="sub-navigation" to="/Lots">Лоты</RouterLink>
+                    <RouterLink class="sub-navigation" to="/Cards">Карты</RouterLink>
+                    <RouterLink class="sub-navigation" to="/Decks">Колоды</RouterLink>
+                    <RouterLink class="sub-navigation" to="/Formats">Форматы</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/createDeck">Создать колоду</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/createLot">Создать объявление</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/MyDecks">Мои колоды</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/MyLots">Мои объявления</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/MyCards">Моя коллекция</RouterLink>
-                    <RouterLink v-show="isOrganizer" class="sub-navigation" to="/">Страница для организатора
+                    <RouterLink v-show="isOrganizer" class="sub-navigation" to="/organizerPage">Страница для
+                        организатора
                     </RouterLink>
-                    <RouterLink v-show="isAdmin" class="sub-navigation" to="/">Страница для админа</RouterLink>
+                    <RouterLink v-show="isAdmin" class="sub-navigation" to="/adminPage">Страница для админа</RouterLink>
                 </div>
             </div>
         </nav>

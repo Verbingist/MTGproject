@@ -68,7 +68,7 @@ Route::get('/Cards', [CardController::class, 'getCards']);
 Route::post('/Card', [CardController::class, 'createCard'])->middleware([Authenification::class, CardCreateValidation::class]);
 Route::put('/Card/{id}', [CardController::class, 'updateCard'])->middleware([Authenification::class, CardUpdateValidation::class]);
 Route::delete('/Card/{id}', [CardController::class, 'deleteCard'])->middleware(Authenification::class);
-Route::get('/RestrictedCards', [CardController::class, 'getRestrictedCards']);
+Route::get('/RestrictedCards/{format_name?}', [CardController::class, 'getRestrictedCards']);
 Route::post('/RestrictedCard', [CardController::class, 'createRestrictedCard'])->middleware([Authenification::class, RestrictedCardCreateValidation::class]);
 Route::put('/RestrictedCard/{id}', [CardController::class, 'updateRestrictedCard'])->middleware([Authenification::class, RestrictedCardUpdateValidation::class]);
 Route::delete('/RestrictedCard/{id}', [CardController::class, 'deleteRestrictedCard'])->middleware(Authenification::class);
@@ -78,6 +78,7 @@ Route::get('/Tournaments', [TournamentController::class, 'getTournaments']);
 Route::post('/Tournament', [TournamentController::class, 'createTournament'])->middleware([Authenification::class, TournamentCreationValidation::class]);
 Route::put('/Tournament/{id}', [TournamentController::class, 'updateTournament'])->middleware([Authenification::class, TournamentUpdateValidation::class]);
 Route::delete('/Tournament/{id}', [TournamentController::class, 'deleteTournament'])->middleware(Authenification::class);
+Route::get('/UsersInTournament/{id}', [TournamentController::class, 'getUsers']);
 
 Route::get('/Lot/{id}', [TradingLotController::class, 'getLot']);
 Route::get('/Lots', [TradingLotController::class, 'getLots']);

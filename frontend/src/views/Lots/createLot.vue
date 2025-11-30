@@ -115,8 +115,9 @@ function addMesage(message) {
                 @blur="testLotName" @input="testLotName">
             <div class="red" v-show="isVisibleErrors.lot_name">{{ errors.lot_name }}</div>
 
-            <input class="input" type="text" placeholder="Описание объявления (не обязательно)"
-                v-model="createLotForm.lot_description" @blur="testLotDescription" @input="testLotDescription">
+            <textarea class="input" placeholder="Описание объявления (не обязательно)"
+                v-model="createLotForm.lot_description" @blur="testLotDescription"
+                @input="testLotDescription"></textarea>
             <div class="red" v-show="isVisibleErrors.lot_description">{{ errors.lot_description }}</div>
 
             <input class="input" type="text" placeholder="Цена (не обязательно)" v-model="createLotForm.price"
@@ -152,6 +153,12 @@ function addMesage(message) {
 
 select {
     background-color: white;
+}
+
+textarea.input {
+    height: 150px;
+    resize: none;
+    overflow: scroll;
 }
 
 .search-for-commander {

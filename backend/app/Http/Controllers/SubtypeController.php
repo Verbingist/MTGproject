@@ -17,7 +17,7 @@ class SubtypeController extends Controller
     }
     public function getSubtypes()
     {
-        $subtypes = Subtype::paginate(8);
+        $subtypes = Subtype::all();
         return response()->json(['subtypes' => $subtypes, 'status' => 200], 200);
     }
     public function createSubtype(Request $request)

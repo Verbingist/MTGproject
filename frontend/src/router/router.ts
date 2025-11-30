@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import mainPage from '../views/mainPage.vue';
+import mainPage from '../views/Tournaments/mainPage.vue';
 import registrationPage from '../views/Auth/registrationPage.vue';
 import loginPage from '../views/Auth/loginPage.vue';
 import MyDecks from '../views/Decks/MyDecks.vue';
@@ -19,6 +19,17 @@ import MyLots from '../views/Lots/MyLots.vue';
 import UserLots from '../views/Lots/UserLots.vue';
 import Lot from '../views/Lots/Lot.vue';
 import createLot from '../views/Lots/createLot.vue';
+import createTournament from '../views/Tournaments/createTournament.vue';
+import organizerPage from '../views/organizerPage.vue';
+import adminPage from '../views/adminPage.vue';
+import tournament from '../views/Tournaments/tournament.vue';
+import Formats from '../views/Formats/Formats.vue';
+import createFormat from '../views/Formats/createFormat.vue';
+import restrictCard from '../views/Formats/restrictCard.vue';
+import restrictedCards from '../views/Cards/restrictedCards.vue';
+import createSubtype from '../views/Subtypes/createSubtype.vue';
+import types from '../views/Types/types.vue';
+import supertypes from '../views/Supertypes/supertypes.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -181,6 +192,94 @@ const router = createRouter({
       component: createLot,
       meta: {
         title: "Создать объявление"
+      }
+    },
+    {
+      path: '/createTournament',
+      name: 'createTournament',
+      component: createTournament,
+      meta: {
+        title: "Создать турнир"
+      }
+    },
+    {
+      path: '/organizerPage',
+      name: 'organizerPage',
+      component: organizerPage,
+      meta: {
+        title: "Страница для организатора"
+      }
+    },
+    {
+      path: '/adminPage',
+      name: 'adminPage',
+      component: adminPage,
+      meta: {
+        title: "Страница для админа"
+      }
+    },
+    {
+      path: '/Tournament',
+      name: 'tournament',
+      component: tournament,
+      meta: {
+        title: "Турнир"
+      }
+    },
+    {
+      path: '/Formats',
+      name: 'formats',
+      component: Formats,
+      meta: {
+        title: "Форматы"
+      }
+    },
+    {
+      path: '/createFormat',
+      name: 'createFormat',
+      component: createFormat,
+      meta: {
+        title: "Создать формат"
+      }
+    },
+    {
+      path: '/restrictCard',
+      name: 'restrictCard',
+      component: restrictCard,
+      meta: {
+        title: "Ограничить карту"
+      }
+    },
+    {
+      path: '/restrictedCards',
+      name: 'restrictedCards',
+      component: restrictedCards,
+      meta: {
+        title: "Ограниченные карты"
+      }
+    },
+    {
+      path: '/Subtypes',
+      name: 'Subtypes',
+      component: createSubtype,
+      meta: {
+        title: "Подтипы"
+      }
+    },
+    {
+      path: '/Types',
+      name: 'types',
+      component: types,
+      meta: {
+        title: "Типы"
+      }
+    },
+    {
+      path: '/Supertypes',
+      name: 'supertypes',
+      component: supertypes,
+      meta: {
+        title: "Супертипы"
       }
     }
   ],

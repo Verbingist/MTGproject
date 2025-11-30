@@ -13,7 +13,7 @@ class FormatCreateValidation
     {
         try {
             $request->validate([
-                'format_name' => 'required|unique:formats,format_name',
+                'format_name' => 'required|unique:formats,format_name|min:4',
                 'min_cards_in_deck' => 'required|numeric|min:40', 
                 'max_cards_in_deck' => 'nullable|numeric|min:0', 
                 'format_description' => 'required'

@@ -6,7 +6,19 @@ import { useRoute } from 'vue-router'
 
 let auth = ref(false)
 
-function checkAuth() {
+function authCheck() {
+    axios.get('http://localhost:8000/IsAuth')
+        .then(result => {
+            if (result.data.role != 4) {
+                auth.value = true;
+            }
+        })
+        .catch(error => addMessage('Не удалось проверить авторизацию'))
+}
+
+let isOwnDeck = ref(false)
+
+function isOwnDeckCheck() {
     axios.get(`http://localhost:8000/isOwnDeck/${deck_id.value}`)
         .then(result => {
             auth.value = result.data.isOwnDeck
@@ -59,7 +71,8 @@ function loadCommander() {
 onMounted(() => {
     loadCards()
     loadDeck()
-    checkAuth()
+    isOwnDeckCheck()
+    authCheck()
 })
 
 
@@ -128,7 +141,7 @@ function addMessage(message) {
     </header>
     <main class="wrapper">
         <h2>Колода {{ deck.deck_name }}</h2>
-        <input v-show="auth" id="addCards" class="input" type="text" placeholder="Добавить карту в колоду"
+        <input v-show="isOwnDeck" id="addCards" class="input" type="text" placeholder="Добавить карту в колоду"
             v-model="newCard" @input="startAdding">
         <div v-show="isSearchForAdd" class="added-cards">
             <div v-for="card in foundCardsForAdd">
@@ -142,19 +155,20 @@ function addMessage(message) {
                 <p>
                     <RouterLink class="cardInfo" to="/">Подробное описание</RouterLink>
                 </p>
-                <button v-show="auth" class="add-button" @click="removeCardFromDeck(card)">Удалить карту из
+                <button v-show="isOwnDeck" class="add-button" @click="removeCardFromDeck(card)">Удалить карту из
                     колоды</button>
-                <button class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
+                <button v-show="auth" class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
             </div>
             <div v-for="card in cards" class="card">
                 <h3>{{ card.card.card_name }}</h3>
                 <img class="card-image" :src="card.card.image_href">
                 <p>
-                    <RouterLink class="cardInfo" :to="{path: '/Card', query: {id: card.card.card_id}}">Подробное описание</RouterLink>
+                    <RouterLink class="cardInfo" :to="{ path: '/Card', query: { id: card.card.card_id } }">Подробное
+                        описание</RouterLink>
                 </p>
-                <button v-show="auth" class="add-button" @click="removeCardFromDeck(card)">Удалить карту из
+                <button v-show="isOwnDeck" class="add-button" @click="removeCardFromDeck(card)">Удалить карту из
                     колоды</button>
-                <button class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
+                <button v-show="auth" class="add-button" @click="addCardToCollection(card)">Добавить в коллекцию</button>
             </div>
         </div>
         <div class="message" v-show="visibleMessage">{{ globalMessage.toString() }}</div>
