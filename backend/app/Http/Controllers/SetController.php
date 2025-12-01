@@ -19,11 +19,15 @@ class SetController extends Controller
     {
         $search = $request->query('search');
         if ($search) {
-            $sets = Set::where('set_name', 'ilike', '%' . $search . '%')->orderBy('set_name')->paginate(8);
+            $sets = Set::where('set_name', 'ilike', '%' . $search . '%')->orderBy('set_name')->paginate(9);
             return response()->json(['sets' => $sets, 'status' => 200], 200);
         }
-        $sets = Set::orderBy('set_name')->paginate(8);
+        $sets = Set::orderBy('set_name')->paginate(9);
         return response()->json(['sets' => $sets, 'status' => 200], 200);
+    }
+    public function getCards($id) {
+        $cards = Cards_sets::where('set_id', '=', $id)->join('cards', 'cards.card_id', '=', 'cards_sets.card_id')->get();
+        return response()->json(['cards' => $cards, 'status' => 200], 200);
     }
     public function createSet(Request $request)
     {
@@ -63,13 +67,13 @@ class SetController extends Controller
         Set::where('set_id', '=', $id)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
     }
-    public function addCardToSet(Request $request)
+    public function addCardToSet(Request $request, $set_id)
     {
         if ($request->user()->cannot('addCard', Set::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $set_id = Set::where('set_name', '=', $request->set_name)->value('set_id');
-        if (!$set_id) {
+        $set = Set::where('set_id', '=', $set_id)->first();
+        if (!$set) {
             return response()->json(['message' => "Сета не существует", 'status' => 404], 404);
         }
         $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');
@@ -83,13 +87,13 @@ class SetController extends Controller
         Cards_sets::insert(['set_id' => $set_id, 'card_id' => $card_id]);
         return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
     }
-    public function removeCardFromSet(Request $request)
+    public function removeCardFromSet(Request $request, $set_id)
     {
         if ($request->user()->cannot('removeCard', Set::class)) {
             return response()->json(['message' => "У вас недостаточно прав для этого действия", 'status' => 404], 404);
         }
-        $set_id = Set::where('set_name', '=', $request->set_name)->value('set_id');
-        if (!$set_id) {
+        $set = Set::where('set_id', '=', $set_id)->first();
+        if (!$set) {
             return response()->json(['message' => "Сета не существует", 'status' => 404], 404);
         }
         $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');

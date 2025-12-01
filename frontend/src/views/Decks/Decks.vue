@@ -75,7 +75,7 @@ function addMessage(message) {
     </header>
     <main class="wrapper">
         <h2>Колоды</h2>
-        <input class="input" type="text" placeholder="Поиск по колодам" v-model="search" @input="searchForCards">
+        <input class="input" type="text" placeholder="Поиск по колодам" v-model="search" @input="searchForDecks">
         <div class="decks">
             <div v-for="deck in decks" class="deck">
                 <h3>Колода: {{ deck.deck_name }}</h3>

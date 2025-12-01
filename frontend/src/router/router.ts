@@ -30,6 +30,12 @@ import restrictedCards from '../views/Cards/restrictedCards.vue';
 import createSubtype from '../views/Subtypes/createSubtype.vue';
 import types from '../views/Types/types.vue';
 import supertypes from '../views/Supertypes/supertypes.vue';
+import Sets from '../views/Sets/Sets.vue';
+import set from '../views/Sets/set.vue';
+import createSet from '../views/Sets/createSet.vue';
+import deleteCard from '../views/Cards/deleteCard.vue';
+import createCard from '../views/Cards/createCard.vue';
+import updateCard from '../views/Cards/updateCard.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -280,6 +286,54 @@ const router = createRouter({
       component: supertypes,
       meta: {
         title: "Супертипы"
+      }
+    },
+    {
+      path: '/Sets',
+      name: 'sets',
+      component: Sets,
+      meta: {
+        title: "Сеты"
+      }
+    },
+    {
+      path: '/Set',
+      name: 'set',
+      component: set,
+      meta: {
+        title: "Сет"
+      }
+    },
+    {
+      path: '/createSet',
+      name: 'createSet',
+      component: createSet,
+      meta: {
+        title: "Создать сет"
+      }
+    },
+    {
+      path: '/deleteCard',
+      name: 'deleteCard',
+      component: deleteCard,
+      meta: {
+        title: "Удалить карту"
+      }
+    },
+    {
+      path: '/createCard',
+      name: 'createCard',
+      component: createCard,
+      meta: {
+        title: "Создать карту"
+      }
+    },
+    {
+      path: '/updateCard',
+      name: 'updateCard',
+      component: updateCard,
+      meta: {
+        title: "Обновить карту"
       }
     }
   ],

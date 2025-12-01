@@ -13,7 +13,7 @@ class SetCreateValidation
     {
         try {
             $request->validate([
-                'set_name' => 'required|unique:sets,set_name', 
+                'set_name' => 'required|unique:sets,set_name',  
                 'number_of_cards' => 'required|min:0', 
                 'date_of_release' => 'required|date|before:tomorrow',
             ]);

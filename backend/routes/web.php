@@ -72,6 +72,7 @@ Route::get('/RestrictedCards/{format_name?}', [CardController::class, 'getRestri
 Route::post('/RestrictedCard', [CardController::class, 'createRestrictedCard'])->middleware([Authenification::class, RestrictedCardCreateValidation::class]);
 Route::put('/RestrictedCard/{id}', [CardController::class, 'updateRestrictedCard'])->middleware([Authenification::class, RestrictedCardUpdateValidation::class]);
 Route::delete('/RestrictedCard/{id}', [CardController::class, 'deleteRestrictedCard'])->middleware(Authenification::class);
+Route::get('/Keywords', [CardController::class, 'getKeywords']);
 
 Route::get('/Tournament/{id}', [TournamentController::class, 'getTournament']);
 Route::get('/Tournaments', [TournamentController::class, 'getTournaments']);
@@ -113,8 +114,9 @@ Route::delete('/Subtype/{id}', [SubtypeController::class, 'deleteSubtype'])->mid
 
 Route::get('/Set/{id}', [SetController::class, 'getSet']);
 Route::get('/Sets', [SetController::class, 'getSets']);
+Route::get('/CardsInSet/{id}', [SetController::class, 'getCards']);
 Route::post('/Set', [SetController::class, 'createSet'])->middleware([Authenification::class, SetCreateValidation::class]);
 Route::put('/Set/{id}', [SetController::class, 'updateSet'])->middleware([Authenification::class, SetUpdateValidation::class]);
 Route::delete('/Set/{id}', [SetController::class, 'deleteSet'])->middleware(Authenification::class);
-Route::post('/addCardToSet', [SetController::class, 'addCardToSet'])->middleware(Authenification::class);
-Route::delete('/removeCardFromSet', [SetController::class, 'removeCardFromSet'])->middleware(Authenification::class);
+Route::post('/addCardToSet/{set_id}', [SetController::class, 'addCardToSet'])->middleware(Authenification::class);
+Route::delete('/removeCardFromSet/{set_id}', [SetController::class, 'removeCardFromSet'])->middleware(Authenification::class);

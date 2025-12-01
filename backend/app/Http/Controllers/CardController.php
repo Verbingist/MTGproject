@@ -80,7 +80,7 @@ class CardController extends Controller
         DB::transaction(function () use ($request) {
             Card::insert($request->only('card_name', 'price', 'text_rules', 'illustration_author', 'flavor_text', 'image_href', 'power', 'thoughtness'));
             $card_id = Card::where('card_name', '=', $request->card_name)->value('card_id');
-            foreach ($request->keywords as $keyword) {
+            foreach ($request->keywords ?? [] as $keyword) {
                 $keyword_id = Keyword::where('keyword_name', '=', $keyword)->value('keyword_id');
                 Cards_keywords::insert(['card_id' => $card_id, 'keyword_id' => $keyword_id]);
             }
@@ -88,18 +88,16 @@ class CardController extends Controller
                 $type_id = Type::where('type_name', '=', $type)->value('type_id');
                 Cards_types::insert(['card_id' => $card_id, 'type_id' => $type_id]);
             }
-            foreach ($request->subtypes as $subtype) {
+            foreach ($request->subtypes ?? [] as $subtype) {
                 $subtype_id = Subtype::where('subtype_name', '=', $subtype)->value('subtype_id');
                 Cards_subtypes::insert(['card_id' => $card_id, 'subtype_id' => $subtype_id]);
             }
-            foreach ($request->supertypes as $supertype) {
+            foreach ($request->supertypes ?? [] as $supertype) {
                 $supertype_id = Supertype::where('supertype_name', '=', $supertype)->value('supertype_id');
                 Cards_supertypes::insert(['card_id' => $card_id, 'supertype_id' => $supertype_id]);
             }
             $mana_value = $request->only('white_mana', 'blue_mana', 'black_mana', 'red_mana', 'green_mana', 'colorless_mana');
             Mana_value::where('card_id', '=', $card_id)->update($mana_value);
-            $set_id = Set::where('set_name', '=', $request->set_name)->value("set_id");
-            Cards_sets::insert(['card_id' => $card_id, 'set_id' => $set_id]);
         }, 3);
         return response()->json(['message' => "Успешно добавлено", 'status' => 200], 200);
     }
@@ -234,5 +232,10 @@ class CardController extends Controller
         }
         Restricted_card::where('card_id', '=', $id)->where('format_name', '=', $request->format_name)->delete();
         return response()->json(['message' => 'Успешно удалено', 'status' => 200], 200);
+    }
+    public function getKeywords()
+    {
+        $keywords = Keyword::all();
+        return response()->json(['keywords' => $keywords, 'status' => 200], 200);
     }
 }

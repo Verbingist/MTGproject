@@ -83,6 +83,7 @@ function revealBurger() {
                     <RouterLink class="sub-navigation" to="/Cards">Карты</RouterLink>
                     <RouterLink class="sub-navigation" to="/Decks">Колоды</RouterLink>
                     <RouterLink class="sub-navigation" to="/Formats">Форматы</RouterLink>
+                    <RouterLink class="sub-navigation" to="/Sets">Сеты</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/createDeck">Создать колоду</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/createLot">Создать объявление</RouterLink>
                     <RouterLink v-show="isLog" class="sub-navigation" to="/MyDecks">Мои колоды</RouterLink>
@@ -135,7 +136,7 @@ header {
 
 .sub-navigation {
     font-size: 16px;
-    margin: 20px 20px;
+    margin: 19px 20px;
     text-decoration: none;
     color: rgb(255, 255, 255);
 }
