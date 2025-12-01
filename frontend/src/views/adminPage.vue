@@ -9,11 +9,11 @@ import headerComponent from '../components/headerComponent.vue';
     <main class="wrapper">
         <h2 class="logo">Страница для админа</h2>
         <div class="href-column">
-            <RouterLink class="sub-navigation" to="/">Создать карту
+            <RouterLink class="sub-navigation" to="/createCard">Создать карту
             </RouterLink>
-            <RouterLink class="sub-navigation" to="/">Изменить карту
+            <RouterLink class="sub-navigation" to="/updateCard">Изменить карту
             </RouterLink>
-            <RouterLink class="sub-navigation" to="/">Удалить карту
+            <RouterLink class="sub-navigation" to="/deleteCard">Удалить карту
             </RouterLink>
         </div>
         <div class="href-column">
@@ -25,11 +25,7 @@ import headerComponent from '../components/headerComponent.vue';
             </RouterLink>
         </div>
         <div class="href-column">
-            <RouterLink class="sub-navigation" to="/">Создать сет
-            </RouterLink>
-            <RouterLink class="sub-navigation" to="/">Удалить сет
-            </RouterLink>
-            <RouterLink class="sub-navigation" to="/">Добавить/Удалить карту из сета
+            <RouterLink class="sub-navigation" to="/createSet">Создать сет
             </RouterLink>
         </div>
     </main>

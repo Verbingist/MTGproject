@@ -35,7 +35,6 @@ class CardCreateValidation
                 'red_mana' => 'nullable|numeric|min:0',
                 'green_mana' => 'nullable|numeric|min:0',
                 'colorless_mana' => 'nullable|numeric|min:0',
-                'set_name' => 'required|exists:sets,set_name'
             ]);
         } catch (ValidationException $error) {
             return response()->json(['message' => 'Введены некорректные данные', 'errors' => $error->errors(), 'status' => 400], 400);
