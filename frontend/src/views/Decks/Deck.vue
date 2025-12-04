@@ -21,7 +21,7 @@ let isOwnDeck = ref(false)
 function isOwnDeckCheck() {
     axios.get(`http://localhost:8000/isOwnDeck/${deck_id.value}`)
         .then(result => {
-            auth.value = result.data.isOwnDeck
+            isOwnDeck.value = result.data.isOwnDeck
         })
         .catch(error => addMessage("Не удалось идентифицировать пользователя"));
 }

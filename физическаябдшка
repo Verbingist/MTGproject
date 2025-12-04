@@ -952,12 +952,12 @@ SELECT * FROM USERS WHERE ID = 3;
 
 
 {
-    "firstname": "Максим", 
-    "secondname": "Николаев", 
-    "email": "maxim15@mail.ru", 
-    "login": "maxim15", 
-    "password": "password", 
-    "age": null, 
+    "first_name": "Егор", 
+    "last_name": "Николаев", 
+    "email": "egor123@mail.ru", 
+    "login": "egor123", 
+    "password": "12345", 
+    "age": 18, 
     "rating": "Bronze"
 }
 
