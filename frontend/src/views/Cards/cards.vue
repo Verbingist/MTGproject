@@ -99,7 +99,7 @@ function addMessage(message) {
     </header>
     <main class="wrapper">
         <h2>Карты</h2>
-        <input id="searchCards" class="input" type="text" placeholder="Поиск по коллекции" v-model="search"
+        <input id="searchCards" class="input" type="text" placeholder="Поиск карт" v-model="search"
             @input="searchForCards">
         <div class="cards">
             <div v-for="card in cards" class="card">
